@@ -28,7 +28,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllClientProducts());
     }
 
-    @GetMapping(path = "/clientProducts/page/{pageIndex}")
+    @GetMapping(path = "/adminProducts/page/{pageIndex}")
     public ResponseEntity<List<DTOProductAdmin>> getAdminProductsByPage(@PathVariable int pageIndex){
         return ResponseEntity.ok(productService.getProductsAdminByPage(pageIndex));
     }
