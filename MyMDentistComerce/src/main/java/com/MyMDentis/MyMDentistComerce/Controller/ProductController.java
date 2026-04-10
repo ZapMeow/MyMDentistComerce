@@ -22,7 +22,7 @@ public class ProductController {
     public ResponseEntity<List<DTOProductAdmin>> getAllAdminProducts(){
         return ResponseEntity.ok(productService.getAllAdminProducts());
     }
-
+//
     @GetMapping(path = "/clientProducts")
     public ResponseEntity<List<DTOProductClient>> getAllClientProducts(){
         return ResponseEntity.ok(productService.getAllClientProducts());
