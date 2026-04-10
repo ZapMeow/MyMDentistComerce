@@ -15,4 +15,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     void deleteByProductName(String productName);
     List<Product> findByDepartment(Department department);
 
+    // Page<Product> findByStatus(String status, Pageable pageable);
+
 }

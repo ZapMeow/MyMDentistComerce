@@ -8,6 +8,9 @@ import com.MyMDentis.MyMDentistComerce.Repository.DepartmentRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +51,23 @@ public class ProductService {
         }
         return dtoProductsClient;
 
+    }
+
+    @Transactional
+    public List<DTOProductAdmin> getProductsAdminByPage(int index){
+
+        List<DTOProductAdmin> products = new ArrayList<>();
+
+        //Spring use 0-based index and 20 is the pageSize
+        Pageable pageable = PageRequest.of(index-1, 20);
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        for (Product product : productPage){
+            products.add(dtoProductAdmin.parseDTOProductAdmin(product));
+
+        }
+
+        return products;
     }
 
     @Transactional

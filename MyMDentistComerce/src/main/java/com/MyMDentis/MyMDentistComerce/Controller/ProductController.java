@@ -28,6 +28,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllClientProducts());
     }
 
+    @GetMapping(path = "/clientProducts/page/{pageIndex}")
+    public ResponseEntity<List<DTOProductAdmin>> getAdminProductsByPage(@PathVariable int pageIndex){
+        return ResponseEntity.ok(productService.getProductsAdminByPage(pageIndex));
+    }
+
     @GetMapping(path = "/filterAdminProducts/{filter}")
     public ResponseEntity<List<DTOProductAdmin>> getFilterAdminProducts(@PathVariable String filter){
         return ResponseEntity.ok(productService.filterAdminProducts(filter));
