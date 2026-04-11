@@ -9,9 +9,10 @@ import lombok.*;
 @AllArgsConstructor
 public class DTODepartment {
 
+    public Long idDepartment;
     private String nameDepartment;
 
     public DTODepartment parseToDTODepartment(Department department){
-        return new DTODepartment(department.getNameDepartment());
+        return new DTODepartment(department.getIdDepartment(), department.getNameDepartment());
     }
 }
