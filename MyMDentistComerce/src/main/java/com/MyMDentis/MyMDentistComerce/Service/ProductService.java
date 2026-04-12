@@ -86,6 +86,7 @@ public class ProductService {
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(product));
     }
 
+    @Transactional
     public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
         System.out.println("editing product");
 
@@ -108,12 +109,14 @@ public class ProductService {
 
     }
 
+    @Transactional
     public String deleteProduct(String productName) {
         productRepository.deleteByProductName(productName);
 
         return "producto ha sido eliminado";
     }
 
+    @Transactional
     public List<DTOProductAdmin> filterAdminProducts(String filter) {
         Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
 
@@ -127,6 +130,7 @@ public class ProductService {
 
     }
 
+    @Transactional
     public List<DTOProductClient> filterClientProducts(String filter) {
         Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
 
