@@ -1,11 +1,9 @@
 package com.MyMDentis.MyMDentistComerce.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Entity
 @Table(name = "Product")
 @Getter @Setter
@@ -29,7 +27,7 @@ public class Product {
 
     @Column(name = "stock_product", length = 6, unique = false, nullable = false)
     private Long stockProduct;
-    @Column(name = "critic_stock", length = 6, unique = false, nullable = true)
+    @Column(name = "critic_stock", length = 6, unique = false, nullable = false)
     private Long criticProduct;
 
     //Price info

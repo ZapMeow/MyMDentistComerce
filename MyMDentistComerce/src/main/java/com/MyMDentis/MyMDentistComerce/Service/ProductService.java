@@ -2,21 +2,29 @@ package com.MyMDentis.MyMDentistComerce.Service;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
+import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
+import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesProductException;
+import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
+import com.MyMDentis.MyMDentistComerce.Exception.NullValuesProductException;
 import com.MyMDentis.MyMDentistComerce.Model.Department;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Repository.DepartmentRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
-import org.jspecify.annotations.Nullable;
+import com.MyMDentis.MyMDentistComerce.Verification.Entities;
+import com.MyMDentis.MyMDentistComerce.Verification.ProductAtributes;
+import com.MyMDentis.MyMDentistComerce.Verification.ProductVerification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -28,6 +36,10 @@ public class ProductService {
 
     private final DTOProductAdmin dtoProductAdmin = new DTOProductAdmin();
     private final DTOProductClient dtoProductClient = new DTOProductClient();
+    private final ProductVerification productVerification = new ProductVerification();
+
+
+    private static  final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     @Transactional
     public List<DTOProductAdmin> getAllAdminProducts(){
@@ -72,36 +84,132 @@ public class ProductService {
 
     @Transactional
     public DTOProductAdmin saveNewProduct(DTOProductAdmin dtoProductAdmin) {
-        Product product = new Product();
-        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment()).orElse(null);
-        product.setCodeProduct(dtoProductAdmin.getCodeProduct());
-        product.setCriticProduct(dtoProductAdmin.getCriticProduct());
-        product.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
-        product.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct());
-        product.setPriceProduct(dtoProductAdmin.getPriceProduct());
-        product.setProductName(dtoProductAdmin.getProductName());
-        product.setStockProduct(dtoProductAdmin.getStockProduct());
-        product.setDepartment(department);
 
-        return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(product));
+        if (productVerification.nullVerification(dtoProductAdmin)){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                    ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
+        if (productVerification.validValues(dtoProductAdmin) != null){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
+                    productVerification.validValues(dtoProductAdmin),
+                    ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
+                                                    ProductAtributes.PRODUCT_CODE,
+                                                    ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
+                                                    ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
+                                                    ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validStockCorrelation(dtoProductAdmin)){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
+                                                    ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
+                                                    ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
+        }
+        if (existCode(dtoProductAdmin.getCodeProduct())){
+            throw new InvalidValuesProductException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
+                                                    ProductAtributes.PRODUCT_CODE,
+                                                    ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
+        }
+        if (existProductName(dtoProductAdmin.getProductName())){
+            throw new InvalidValuesProductException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
+                                                    ProductAtributes.PRODUCT_NAME,
+                                                    ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
+        }
+        if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
+            throw new InvalidValuesProductException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
+                                                    ProductAtributes.PRODUCT_DEPARTMENT,
+                                                    ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
+        }
+
+        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment()).orElse(null);
+
+        Product newProduct = Product.builder()
+                .codeProduct(dtoProductAdmin.getCodeProduct().trim())
+                .productName(dtoProductAdmin.getProductName().trim())
+                .descriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null)
+                .stockProduct(dtoProductAdmin.getStockProduct())
+                .criticProduct(dtoProductAdmin.getCriticProduct())
+                .priceProduct(dtoProductAdmin.getPriceProduct())
+                .costPriceProduct(dtoProductAdmin.getCostPriceProduct())
+                .department(department)
+                .build();
+
+        return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(newProduct));
+
     }
 
     @Transactional
     public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
-        System.out.println("editing product");
+
+        if (productVerification.nullProductName(productName)){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
 
         Product product = productRepository.findByProductName(productName).orElse(null);
-        assert product != null;
+        if (product == null){
+            throw new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
+                                                Entities.PRODUCT,
+                                                ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE);
+        }
+
         Department department = departmentRepository.findByNameDepartment(product.getDepartment().getNameDepartment()).orElse(null);
+        if (department == null){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
 
+        if (productVerification.nullVerification(dtoProductAdmin)){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                    ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
+        if (productVerification.validValues(dtoProductAdmin) != null){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
+                    productVerification.validValues(dtoProductAdmin),
+                    ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
+                    ProductAtributes.PRODUCT_CODE,
+                    ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
+                    ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
+                    ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
+        }
+        if (!productVerification.validStockCorrelation(dtoProductAdmin)){
+            throw new InvalidValuesProductException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
+                    ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
+                    ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
+        }
+        if (!product.getCodeProduct().equals(dtoProductAdmin.getCodeProduct()) && existCode(dtoProductAdmin.getCodeProduct())){
+            throw new InvalidValuesProductException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
+                    ProductAtributes.PRODUCT_CODE,
+                    ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
+        }
+        if (!product.getProductName().equals(dtoProductAdmin.getProductName()) && existProductName(dtoProductAdmin.getProductName())){
+            throw new InvalidValuesProductException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
+                    ProductAtributes.PRODUCT_NAME,
+                    ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
+        }
+        if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
+            throw new InvalidValuesProductException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
+                    ProductAtributes.PRODUCT_DEPARTMENT,
+                    ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
+        }
 
-        product.setCodeProduct(dtoProductAdmin.getCodeProduct());
+        product.setCodeProduct(dtoProductAdmin.getCodeProduct().trim());
         product.setCriticProduct(dtoProductAdmin.getCriticProduct());
         product.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
         product.setStockProduct(dtoProductAdmin.getStockProduct());
-        product.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct());
+        product.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null);
         product.setPriceProduct(dtoProductAdmin.getPriceProduct());
-        product.setProductName(dtoProductAdmin.getProductName());
+        product.setProductName(dtoProductAdmin.getProductName().trim());
         product.setDepartment(department);
 
         productRepository.save(product);
@@ -110,10 +218,18 @@ public class ProductService {
     }
 
     @Transactional
-    public String deleteProduct(String productName) {
-        productRepository.deleteByProductName(productName);
+    public void deleteProduct(String productName) {
+        if (productName == null || productName.trim().isEmpty()){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
 
-        return "producto ha sido eliminado";
+        Product product = productRepository.findByProductName(productName).orElse(null);
+        if (product == null){
+            throw new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
+                    Entities.PRODUCT,
+                    ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE);
+        }
+        productRepository.deleteByProductName(productName);
     }
 
     @Transactional
@@ -134,6 +250,12 @@ public class ProductService {
     public List<DTOProductClient> filterClientProducts(String filter) {
         Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
 
+        if (department == null){
+            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+
+        }
+
         List<Product> products = productRepository.findByDepartment(department);
         List<DTOProductClient> dtoProductClients = new ArrayList<>();
 
@@ -142,5 +264,25 @@ public class ProductService {
         }
         return dtoProductClients;
 
+    }
+
+
+
+    ////////////////////////////////////////////////verifications///////////////////////////////////////
+    @Transactional
+    public boolean existCode(String productCode){
+        Product product = productRepository.findByCodeProduct(productCode).orElse(null);
+        return product != null;
+    }
+
+    @Transactional
+    public boolean existProductName(String productName){
+        Product product = productRepository.findByProductName(productName).orElse(null);
+        return product != null;
+    }
+
+    @Transactional
+    public Optional<Department> existDepartment(String departmentName){
+        return departmentRepository.findByNameDepartment(departmentName);
     }
 }
