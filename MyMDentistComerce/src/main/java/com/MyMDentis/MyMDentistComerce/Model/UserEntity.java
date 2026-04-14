@@ -19,8 +19,10 @@ public class UserEntity {
     private String nameUser;
     @Column(name = "email_user", length = 100, nullable = false, unique = true)
     private String emailUser;
-    @Column(name = "password_user", length = 50, nullable = false, unique = false)
+    @Column(name = "password_user", length = 100, nullable = false, unique = false)
     private String passwordUser;
+    @Column(name = "cellphone_user", length = 9, nullable = true, unique = true)
+    private Long cellphoneUser;
     @Column(name = "role_user", length = 20, nullable = false, unique = false)
     private Roles role;
 }
