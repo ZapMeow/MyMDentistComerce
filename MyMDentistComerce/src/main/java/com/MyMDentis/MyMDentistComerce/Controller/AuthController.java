@@ -37,14 +37,6 @@ public class AuthController {
     @PostMapping(path = "/register")
     public ResponseEntity<DTOUserEntity> registerUser(@RequestBody DTOUserEntity dtoUserEntity){
 
-        UserEntity user = UserEntity.builder()
-                .nameUser(dtoUserEntity.getNameUser())
-                .passwordUser(dtoUserEntity.getPasswordUser())
-                .cellphoneUser(dtoUserEntity.getCellphoneUser())
-                .role(dtoUserEntity.getRole())
-                .emailUser(dtoUserEntity.getEmailUser())
-                .build();
-
         return ResponseEntity.ok(userEntityService.createUser(dtoUserEntity));
 
     }
