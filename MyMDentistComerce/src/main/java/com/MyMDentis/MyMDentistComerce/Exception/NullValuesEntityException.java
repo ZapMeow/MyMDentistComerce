@@ -4,11 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class NullValuesProductException extends RuntimeException {
+public class NullValuesEntityException extends RuntimeException {
 
     private String code;
 
-    public NullValuesProductException(String codeException, String message) {
+    public NullValuesEntityException(String codeException, String message) {
         super(message);
         this.code = codeException;
     }

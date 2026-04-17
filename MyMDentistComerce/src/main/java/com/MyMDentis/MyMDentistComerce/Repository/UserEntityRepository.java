@@ -11,4 +11,6 @@ public interface UserEntityRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByNameUser(String nameUser);
 
+    Optional<UserEntity> findByNameUserAndSurnameUser(String nameUser, String surnameUser);
+
 }

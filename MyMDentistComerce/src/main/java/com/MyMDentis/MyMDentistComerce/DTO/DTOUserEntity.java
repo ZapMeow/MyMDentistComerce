@@ -11,6 +11,7 @@ import lombok.*;
 public class DTOUserEntity {
 
     private String nameUser;
+    private String surnameUser;
     private String emailUser;
     private String passwordUser;
     private Long cellphoneUser;
@@ -19,6 +20,7 @@ public class DTOUserEntity {
     public DTOUserEntity parseDTOUserEntity(UserEntity userEntity){
         return DTOUserEntity.builder()
                 .nameUser(userEntity.getNameUser())
+                .surnameUser(userEntity.getSurnameUser())
                 .emailUser(userEntity.getEmailUser())
                 .passwordUser(userEntity.getPasswordUser())
                 .cellphoneUser(userEntity.getCellphoneUser())

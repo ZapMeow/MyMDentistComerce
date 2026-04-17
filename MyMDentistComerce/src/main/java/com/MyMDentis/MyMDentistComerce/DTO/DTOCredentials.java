@@ -8,6 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 public class DTOCredentials {
 
-    private String username;
+    private String emailUser;
     private String password;
 }

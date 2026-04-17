@@ -2,8 +2,8 @@ package com.MyMDentis.MyMDentistComerce.Controller;
 
 import com.MyMDentis.MyMDentistComerce.Exception.DTOInvalidValuesException;
 import com.MyMDentis.MyMDentistComerce.Exception.DTONullException;
-import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesProductException;
-import com.MyMDentis.MyMDentistComerce.Exception.NullValuesProductException;
+import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
+import com.MyMDentis.MyMDentistComerce.Exception.NullValuesEntityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ExceptionController {
 
-    @ExceptionHandler(value = NullValuesProductException.class)
-    public ResponseEntity<DTONullException> nullExceptionHandler(NullValuesProductException ex){
+    @ExceptionHandler(value = NullValuesEntityException.class)
+    public ResponseEntity<DTONullException> nullExceptionHandler(NullValuesEntityException ex){
         DTONullException exception = DTONullException.builder()
                 .code(ex.getCode())
                 .message(ex.getMessage())
@@ -21,8 +21,8 @@ public class ExceptionController {
         return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = InvalidValuesProductException.class)
-    public ResponseEntity<DTOInvalidValuesException> invalidValuesExceptionHandler(InvalidValuesProductException ex){
+    @ExceptionHandler(value = InvalidValuesEntityException.class)
+    public ResponseEntity<DTOInvalidValuesException> invalidValuesExceptionHandler(InvalidValuesEntityException ex){
         DTOInvalidValuesException exception = DTOInvalidValuesException.builder()
                 .code(ex.getCode())
                 .attribute(ex.getAttribute())

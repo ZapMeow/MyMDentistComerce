@@ -1,18 +1,32 @@
 package com.MyMDentis.MyMDentistComerce.Service;
 
+import com.MyMDentis.MyMDentistComerce.DTO.DTOCredentials;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOJwt;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUserEntity;
+import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
+import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
+import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
+import com.MyMDentis.MyMDentistComerce.Exception.NullValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Model.Roles;
 import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
 import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
+import com.MyMDentis.MyMDentistComerce.Security.JwtService;
+import com.MyMDentis.MyMDentistComerce.Verification.UserEntityAtributes;
+import com.MyMDentis.MyMDentistComerce.Verification.UserEntityVerification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
-public class UserEntityService {
+public class UserEntityService implements UserEntityAtributes {
 
     @Autowired
     private UserEntityRepository userEntityRepository;
@@ -20,27 +34,54 @@ public class UserEntityService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private final DTOUserEntity dtoUserEntity = new DTOUserEntity();
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private JwtService jwtService;
+
+    private final DTOUserEntity dtoUserEntity = new DTOUserEntity();
+    private final UserEntityVerification userEntityVerification = new UserEntityVerification();
 
     public List<DTOUserEntity> getAllUsers(){
         return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
     }
 
     public DTOUserEntity findUserByUsername(String username){
+
+        UserEntity user = userEntityRepository.findByNameUser(username).orElseThrow(()->
+                new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE));
+
         return dtoUserEntity.parseDTOUserEntity(Objects.requireNonNull(userEntityRepository.findByNameUser(username).orElse(null)));
     }
 
     public DTOUserEntity createUser(DTOUserEntity dtoUserEntity){
+        if (userEntityVerification.validNullsUserEntity(dtoUserEntity)){
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
+
+        String exception = userEntityVerification.validUserEntityValues(dtoUserEntity);
+
+        if (exception != null){
+            throw new InvalidValuesEntityException(ExceptionValues.USER_REGISTER_INVALID_CODE, exception, ExceptionValues.USER_REGISTER_INVALID_MESSAGE);
+        }
+
+        if (entityExist(dtoUserEntity.getNameUser(), dtoUserEntity.getSurnameUser())){
+            throw new InvalidValuesEntityException(ExceptionValues.USER_ALREADY_EXIST_CODE, NAME_USER + " / " + SURNAME_USER, ExceptionValues.USER_ALREADY_EXIST_MESSAGE);
+        }
+
+        if (emailRegistered(dtoUserEntity.getEmailUser())){
+            throw new InvalidValuesEntityException(ExceptionValues.EMAIL_USER_ALREADY_EXIST_CODE, EMAIL_USER, ExceptionValues.EMAIL_USER_ALREADY_EXIST_MESSAGE);
+        }
+
         UserEntity user = UserEntity.builder()
                 .cellphoneUser(dtoUserEntity.getCellphoneUser())
                 .emailUser(dtoUserEntity.getEmailUser())
                 .nameUser(dtoUserEntity.getNameUser())
+                .surnameUser(dtoUserEntity.getSurnameUser())
                 .passwordUser(passwordEncoder.encode(dtoUserEntity.getPasswordUser()))
                 .role(dtoUserEntity.getRole())
                 .build();
-
-
         return dtoUserEntity.parseDTOUserEntity(userEntityRepository.save(user));
     }
 
@@ -56,6 +97,50 @@ public class UserEntityService {
         return dtoUserEntity.parseDTOUserEntity(userEntityRepository.save(user));
     }
 
+    public DTOJwt sessionUser(DTOCredentials dtoCredentials){
 
+        if (userEntityVerification.validNullsCredentials(dtoCredentials)){
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        }
+
+        String exception = userEntityVerification.validCredentialsValues(dtoCredentials);
+        if (exception != null){
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, exception, ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
+        }
+
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(dtoCredentials.getEmailUser(), dtoCredentials.getPassword())
+            );
+            if (authentication.isAuthenticated()){
+                UserEntity user = userEntityRepository.findByNameUser(dtoCredentials.getEmailUser()).orElseThrow(
+                        () -> new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE)
+                );
+
+                String token = jwtService.generateToken(user.getNameUser(), user.getRole());
+
+                return DTOJwt.builder()
+                        .username(user.getNameUser())
+                        .token(token)
+                        .role(user.getRole())
+                        .build();
+            }
+        } catch (BadCredentialsException e) {
+            throw new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Session", ExceptionValues.USER_NOT_FOUND_MESSAGE);
+        } catch (Exception e) {
+            throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, "Unknown", ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
+        }
+        throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, "Unknown", ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
+    }
+
+    public boolean emailRegistered(String emailUser){
+        Optional<UserEntity> user = userEntityRepository.findByEmailUser(emailUser);
+        return user.isPresent();
+    }
+
+    public boolean entityExist(String nameUser, String surnameUser){
+        Optional<UserEntity> user = userEntityRepository.findByNameUserAndSurnameUser(nameUser, surnameUser);
+        return user.isPresent();
+    }
 
 }

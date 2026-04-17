@@ -3,9 +3,9 @@ package com.MyMDentis.MyMDentistComerce.Service;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
 import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
-import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesProductException;
+import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
-import com.MyMDentis.MyMDentistComerce.Exception.NullValuesProductException;
+import com.MyMDentis.MyMDentistComerce.Exception.NullValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Model.Department;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Repository.DepartmentRepository;
@@ -86,41 +86,41 @@ public class ProductService {
     public DTOProductAdmin saveNewProduct(DTOProductAdmin dtoProductAdmin) {
 
         if (productVerification.nullVerification(dtoProductAdmin)){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                     ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
         if (productVerification.validValues(dtoProductAdmin) != null){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
                     productVerification.validValues(dtoProductAdmin),
                     ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
                                                     ProductAtributes.PRODUCT_CODE,
                                                     ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
                                                     ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
                                                     ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validStockCorrelation(dtoProductAdmin)){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
                                                     ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
                                                     ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
         }
         if (existCode(dtoProductAdmin.getCodeProduct())){
-            throw new InvalidValuesProductException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
                                                     ProductAtributes.PRODUCT_CODE,
                                                     ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (existProductName(dtoProductAdmin.getProductName())){
-            throw new InvalidValuesProductException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
                                                     ProductAtributes.PRODUCT_NAME,
                                                     ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
-            throw new InvalidValuesProductException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
                                                     ProductAtributes.PRODUCT_DEPARTMENT,
                                                     ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
@@ -146,7 +146,7 @@ public class ProductService {
     public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
 
         if (productVerification.nullProductName(productName)){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                                                 ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
 
@@ -159,46 +159,46 @@ public class ProductService {
 
         Department department = departmentRepository.findByNameDepartment(product.getDepartment().getNameDepartment()).orElse(null);
         if (department == null){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                                                 ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
 
         if (productVerification.nullVerification(dtoProductAdmin)){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                     ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
         if (productVerification.validValues(dtoProductAdmin) != null){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
                     productVerification.validValues(dtoProductAdmin),
                     ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
                     ProductAtributes.PRODUCT_CODE,
                     ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
                     ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
                     ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
         }
         if (!productVerification.validStockCorrelation(dtoProductAdmin)){
-            throw new InvalidValuesProductException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
                     ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
                     ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
         }
         if (!product.getCodeProduct().equals(dtoProductAdmin.getCodeProduct()) && existCode(dtoProductAdmin.getCodeProduct())){
-            throw new InvalidValuesProductException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
                     ProductAtributes.PRODUCT_CODE,
                     ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (!product.getProductName().equals(dtoProductAdmin.getProductName()) && existProductName(dtoProductAdmin.getProductName())){
-            throw new InvalidValuesProductException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
                     ProductAtributes.PRODUCT_NAME,
                     ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
-            throw new InvalidValuesProductException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
+            throw new InvalidValuesEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
                     ProductAtributes.PRODUCT_DEPARTMENT,
                     ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
@@ -220,7 +220,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(String productName) {
         if (productName == null || productName.trim().isEmpty()){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
 
         Product product = productRepository.findByProductName(productName).orElse(null);
@@ -251,7 +251,7 @@ public class ProductService {
         Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
 
         if (department == null){
-            throw new NullValuesProductException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                                                 ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
 
         }

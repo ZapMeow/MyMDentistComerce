@@ -4,6 +4,9 @@ import javax.print.DocFlavor;
 
 public interface ExceptionValues {
 
+    String UNKNOWN_EXCEPTION_CODE = "?-001";
+    String UNKNOW_EXCEPTION_MESSAGE = "Un error interno no se pudo concretar. Por favor intentarlo mas tarde";
+
     String NULL_VALUES_EXCEPTION_CODE = "P-001";
     String NULL_VALUES_EXCEPTION_MESSAGE = "Existen valores nulos en la petición";
 
@@ -33,6 +36,18 @@ public interface ExceptionValues {
 
     String DEPARTMENT_NOT_FOUND_CODE = "E-002";
     String DEPARTMENT_NOT_FOUND_MESSAGE = "Departamento no encontrado";
+
+    String USER_NOT_FOUND_CODE = "U-001";
+    String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
+
+    String USER_REGISTER_INVALID_CODE = "U-002";
+    String USER_REGISTER_INVALID_MESSAGE = "El registro de usuario es invalido";
+
+    String USER_ALREADY_EXIST_CODE = "U-003";
+    String USER_ALREADY_EXIST_MESSAGE = "Ya existe un usuario con este nombre";
+
+    String EMAIL_USER_ALREADY_EXIST_CODE = "U-004";
+    String EMAIL_USER_ALREADY_EXIST_MESSAGE = "Ya existe un usuario con este email";
 
 
 }
