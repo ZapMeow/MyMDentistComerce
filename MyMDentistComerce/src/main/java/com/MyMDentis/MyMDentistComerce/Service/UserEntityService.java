@@ -99,14 +99,6 @@ public class UserEntityService implements UserEntityAtributes {
 
     public DTOJwt sessionUser(DTOCredentials dtoCredentials){
 
-        if (userEntityVerification.validNullsCredentials(dtoCredentials)){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
-        }
-
-        String exception = userEntityVerification.validCredentialsValues(dtoCredentials);
-        if (exception != null){
-            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, exception, ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
-        }
 
         try{
             Authentication authentication = authenticationManager.authenticate(

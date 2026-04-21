@@ -14,7 +14,7 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret:arremangala_empujala_si_arremangala_empujala_no}")
+    @Value("${jwt.secret:g2af10tpolh4mC5Fo9fuLG9k8RwWuPMHZxWaJd9CWL1j9ipChh}")
     private String KEY_JWT;
     private final long EXPIRATION_TIME = 1000 * 60 * 5;
     private final long RENOVATION_TIME = 1000L * 60 * 60 * 24 * 3;
