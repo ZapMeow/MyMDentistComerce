@@ -6,6 +6,7 @@ import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,8 +36,12 @@ public class ProductController {
 
     @GetMapping(path = "/adminProducts/page/{pageIndex}")
     public ResponseEntity<List<DTOProductAdmin>> getAdminProductsByPage(@PathVariable int pageIndex){
-        log.info("getting admin products by page " + pageIndex);
         return ResponseEntity.ok(productService.getProductsAdminByPage(pageIndex));
+    }
+
+    @GetMapping(path = "/clientProducts/page/{pageIndex}")
+    public ResponseEntity<List<DTOProductClient>> getClientProductsByPage(@PathVariable int pageIndex){
+        return ResponseEntity.ok(productService.getProductsClientByPage(pageIndex));
     }
 
     @GetMapping(path = "/filterAdminProducts/{filter}")
@@ -52,12 +57,14 @@ public class ProductController {
     }
 
     @PostMapping(path = "/saveProduct")
+    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name())")
     public ResponseEntity<DTOProductAdmin> saveNewProduct(@RequestBody DTOProductAdmin dtoProductAdmin){
         log.info("saving new product: " + dtoProductAdmin.toString());
         return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
     }
 
     @PutMapping(path = "/editProduct/{productName}")
+    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name()) or hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
     public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin){
         log.info("editing a product with name " + productName);
         log.info("the new product is " + dtoProductAdmin.toString());
@@ -65,11 +72,9 @@ public class ProductController {
     }
 
     @DeleteMapping(path = "/deleteProduct/{productName}")
+    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
     public ResponseEntity<String> deleteProduct(@PathVariable String productName){
         System.out.println("deleting product " + productName);
         return new ResponseEntity<>("Producto eliminado", HttpStatus.ACCEPTED);
     }
-
-
-
 }

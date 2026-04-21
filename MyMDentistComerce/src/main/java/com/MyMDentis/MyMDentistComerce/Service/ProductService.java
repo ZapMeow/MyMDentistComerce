@@ -13,6 +13,7 @@ import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Verification.Entities;
 import com.MyMDentis.MyMDentistComerce.Verification.ProductAtributes;
 import com.MyMDentis.MyMDentistComerce.Verification.ProductVerification;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,22 @@ public class ProductService {
         for (Product product : productPage){
             products.add(dtoProductAdmin.parseDTOProductAdmin(product));
 
+        }
+
+        return products;
+    }
+
+    @Transactional
+    public List<DTOProductClient> getProductsClientByPage(int pageIndex) {
+
+        List<DTOProductClient> products = new ArrayList<>();
+
+        //Spring use 0-based index and 20 is the pageSize
+        Pageable pageable = PageRequest.of(pageIndex-1, 20);
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        for (Product product : productPage){
+            products.add(dtoProductClient.parseDTOProductClient(product));
         }
 
         return products;
@@ -285,4 +302,6 @@ public class ProductService {
     public Optional<Department> existDepartment(String departmentName){
         return departmentRepository.findByNameDepartment(departmentName);
     }
+
+
 }

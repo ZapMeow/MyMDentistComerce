@@ -56,6 +56,7 @@ public class JwtService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+            System.out.println(claims.get("role", Roles.class));
             return claims.get("role", Roles.class);
         }catch (JwtException ex){
             ex.printStackTrace();
