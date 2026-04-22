@@ -46,6 +46,9 @@ public class UserEntityService implements UserEntityAtributes {
     public List<DTOUserEntity> getAllUsers(){
         return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
     }
+    public List<DTOUserEntity> getRole(String email){
+        return userEntityRepository.findByEmailUser(email).stream().map(dtoUserEntity::parseDTOUserEntity).toList();
+    }
 
     public DTOUserEntity findUserByUsername(String username){
 
@@ -98,19 +101,15 @@ public class UserEntityService implements UserEntityAtributes {
     }
 
     public DTOJwt sessionUser(DTOCredentials dtoCredentials){
-
-
         try{
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(dtoCredentials.getEmailUser(), dtoCredentials.getPassword())
             );
             if (authentication.isAuthenticated()){
-                UserEntity user = userEntityRepository.findByNameUser(dtoCredentials.getEmailUser()).orElseThrow(
+                UserEntity user = userEntityRepository.findByEmailUser(dtoCredentials.getEmailUser()).orElseThrow(
                         () -> new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE)
                 );
-
                 String token = jwtService.generateToken(user.getNameUser(), user.getRole());
-
                 return DTOJwt.builder()
                         .username(user.getNameUser())
                         .token(token)
@@ -120,7 +119,8 @@ public class UserEntityService implements UserEntityAtributes {
         } catch (BadCredentialsException e) {
             throw new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Session", ExceptionValues.USER_NOT_FOUND_MESSAGE);
         } catch (Exception e) {
-            throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, "Unknown", ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
+            e.printStackTrace();
+            throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, e.getMessage(), ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
         }
         throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, "Unknown", ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
     }
@@ -135,4 +135,32 @@ public class UserEntityService implements UserEntityAtributes {
         return user.isPresent();
     }
 
+    public DTOUserEntity updateUser(String emailUser, DTOUserEntity dtoUserEntity) {
+        UserEntity user = userEntityRepository.findByEmailUser(emailUser)
+                .orElseThrow(() -> new NotFoundEntityException(
+                        ExceptionValues.USER_NOT_FOUND_CODE,
+                        "Usuario",
+                        ExceptionValues.USER_NOT_FOUND_MESSAGE)
+                );
+        if (dtoUserEntity.getNameUser() != null && dtoUserEntity.getSurnameUser() != null) {
+            user.setNameUser(dtoUserEntity.getNameUser());
+            user.setSurnameUser(dtoUserEntity.getSurnameUser());
+        }
+        UserEntity updatedUser = userEntityRepository.save(user);
+        return new DTOUserEntity().parseDTOUserEntity(updatedUser);
+    }
+
+    public DTOUserEntity adminUpdate(String emailUser, DTOUserEntity dtoUserEntity){
+        UserEntity user = userEntityRepository.findByEmailUser(emailUser).orElseThrow(()-> new NotFoundEntityException(
+                ExceptionValues.USER_NOT_FOUND_CODE,
+                "User not found",
+                ExceptionValues.USER_NOT_FOUND_MESSAGE
+        ));
+        if (dtoUserEntity.getNameUser() != null) {
+            user.setNameUser(dtoUserEntity.getNameUser());
+        }
+        UserEntity updatedUser = userEntityRepository.save(user);
+        return new DTOUserEntity().parseDTOUserEntity(updatedUser);
+    }
 }
+

@@ -20,7 +20,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
-    private final Logger logger = Logger.getLogger(JwtAuthFilter.class.getName());
 
     public JwtAuthFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService){
         this.jwtService = jwtService;
@@ -32,10 +31,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        String authHeader = request.getHeader("Authorization");
-        logger.info("New petition on: " + path);
+        String authHeader = request.getHeader("Authorization ");
 
-        if (path.startsWith("/MyMDentalCommerce/auth")){
+        if (path.startsWith("/MyMDentalCommerce")){
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,12 +42,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             try{
                 String token = authHeader.substring(7);
-                logger.info("Token used: " + token);
-                logger.info("Token valid:" + jwtService.validToken(token));
+
                 if(jwtService.validToken(token)){
                     String username = jwtService.extractUsername(token);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                    logger.info(userDetails.toString());
+
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -58,9 +55,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             );
 
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 }else{
-                    System.out.println("Invalid token " + token);
+                    System.out.println("Token invalido " + token);
                 }
             }catch (Exception e){
                 e.printStackTrace();

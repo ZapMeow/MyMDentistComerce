@@ -5,9 +5,9 @@ import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
 import com.MyMDentis.MyMDentistComerce.Service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,6 +24,11 @@ public class UserEntityController {
         return ResponseEntity.ok(userEntityService.getAllUsers());
     }
 
+    @PutMapping(path = "/update/{email}")
+    @PreAuthorize("permitAll()" )
+    public ResponseEntity<DTOUserEntity> update(@PathVariable String email,@RequestBody DTOUserEntity dto){
+        return ResponseEntity.ok(userEntityService.updateUser(email, dto));
+    }
 
 
 }
