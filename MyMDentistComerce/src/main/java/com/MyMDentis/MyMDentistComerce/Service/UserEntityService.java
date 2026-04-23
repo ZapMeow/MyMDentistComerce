@@ -13,7 +13,9 @@ import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
 import com.MyMDentis.MyMDentistComerce.Security.JwtService;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityAtributes;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityVerification;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,37 +45,38 @@ public class UserEntityService implements UserEntityAtributes {
     private final DTOUserEntity dtoUserEntity = new DTOUserEntity();
     private final UserEntityVerification userEntityVerification = new UserEntityVerification();
 
-    public List<DTOUserEntity> getAllUsers(){
+    public List<DTOUserEntity> getAllUsers() {
         return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
     }
-    public List<DTOUserEntity> getRole(String email){
+
+    public List<DTOUserEntity> getRole(String email) {
         return userEntityRepository.findByEmailUser(email).stream().map(dtoUserEntity::parseDTOUserEntity).toList();
     }
 
-    public DTOUserEntity findUserByUsername(String username){
+    public DTOUserEntity findUserByUsername(String username) {
 
-        UserEntity user = userEntityRepository.findByNameUser(username).orElseThrow(()->
+        UserEntity user = userEntityRepository.findByNameUser(username).orElseThrow(() ->
                 new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE));
 
         return dtoUserEntity.parseDTOUserEntity(Objects.requireNonNull(userEntityRepository.findByNameUser(username).orElse(null)));
     }
 
-    public DTOUserEntity createUser(DTOUserEntity dtoUserEntity){
-        if (userEntityVerification.validNullsUserEntity(dtoUserEntity)){
+    public DTOUserEntity createUser(DTOUserEntity dtoUserEntity) {
+        if (userEntityVerification.validNullsUserEntity(dtoUserEntity)) {
             throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
 
         String exception = userEntityVerification.validUserEntityValues(dtoUserEntity);
 
-        if (exception != null){
+        if (exception != null) {
             throw new InvalidValuesEntityException(ExceptionValues.USER_REGISTER_INVALID_CODE, exception, ExceptionValues.USER_REGISTER_INVALID_MESSAGE);
         }
 
-        if (entityExist(dtoUserEntity.getNameUser(), dtoUserEntity.getSurnameUser())){
+        if (entityExist(dtoUserEntity.getNameUser(), dtoUserEntity.getSurnameUser())) {
             throw new InvalidValuesEntityException(ExceptionValues.USER_ALREADY_EXIST_CODE, NAME_USER + " / " + SURNAME_USER, ExceptionValues.USER_ALREADY_EXIST_MESSAGE);
         }
 
-        if (emailRegistered(dtoUserEntity.getEmailUser())){
+        if (emailRegistered(dtoUserEntity.getEmailUser())) {
             throw new InvalidValuesEntityException(ExceptionValues.EMAIL_USER_ALREADY_EXIST_CODE, EMAIL_USER, ExceptionValues.EMAIL_USER_ALREADY_EXIST_MESSAGE);
         }
 
@@ -88,7 +91,7 @@ public class UserEntityService implements UserEntityAtributes {
         return dtoUserEntity.parseDTOUserEntity(userEntityRepository.save(user));
     }
 
-    public DTOUserEntity createDefaultUser(DTOUserEntity dtoUserEntity){
+    public DTOUserEntity createDefaultUser(DTOUserEntity dtoUserEntity) {
         UserEntity user = UserEntity.builder()
                 .cellphoneUser(dtoUserEntity.getCellphoneUser())
                 .emailUser(dtoUserEntity.getEmailUser())
@@ -100,12 +103,12 @@ public class UserEntityService implements UserEntityAtributes {
         return dtoUserEntity.parseDTOUserEntity(userEntityRepository.save(user));
     }
 
-    public DTOJwt sessionUser(DTOCredentials dtoCredentials){
-        try{
+    public DTOJwt sessionUser(DTOCredentials dtoCredentials) {
+        try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(dtoCredentials.getEmailUser(), dtoCredentials.getPassword())
             );
-            if (authentication.isAuthenticated()){
+            if (authentication.isAuthenticated()) {
                 UserEntity user = userEntityRepository.findByEmailUser(dtoCredentials.getEmailUser()).orElseThrow(
                         () -> new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE)
                 );
@@ -125,42 +128,63 @@ public class UserEntityService implements UserEntityAtributes {
         throw new NotFoundEntityException(ExceptionValues.UNKNOWN_EXCEPTION_CODE, "Unknown", ExceptionValues.UNKNOW_EXCEPTION_MESSAGE);
     }
 
-    public boolean emailRegistered(String emailUser){
+    public boolean emailRegistered(String emailUser) {
         Optional<UserEntity> user = userEntityRepository.findByEmailUser(emailUser);
         return user.isPresent();
     }
 
-    public boolean entityExist(String nameUser, String surnameUser){
+    public boolean entityExist(String nameUser, String surnameUser) {
         Optional<UserEntity> user = userEntityRepository.findByNameUserAndSurnameUser(nameUser, surnameUser);
         return user.isPresent();
     }
 
+    @Transactional
     public DTOUserEntity updateUser(String emailUser, DTOUserEntity dtoUserEntity) {
+
         UserEntity user = userEntityRepository.findByEmailUser(emailUser)
                 .orElseThrow(() -> new NotFoundEntityException(
                         ExceptionValues.USER_NOT_FOUND_CODE,
                         "Usuario",
                         ExceptionValues.USER_NOT_FOUND_MESSAGE)
                 );
-        if (dtoUserEntity.getNameUser() != null && dtoUserEntity.getSurnameUser() != null) {
-            user.setNameUser(dtoUserEntity.getNameUser());
-            user.setSurnameUser(dtoUserEntity.getSurnameUser());
+
+
+        if (dtoUserEntity.getNameUser() != null) user.setNameUser(dtoUserEntity.getNameUser());
+        if (dtoUserEntity.getSurnameUser() != null) user.setSurnameUser(dtoUserEntity.getSurnameUser());
+        if (dtoUserEntity.getCellphoneUser() != null) user.setCellphoneUser(dtoUserEntity.getCellphoneUser());
+        if (dtoUserEntity.getEmailUser() != null) user.setEmailUser(dtoUserEntity.getEmailUser());
+        if (dtoUserEntity.getPasswordUser() != null) {
+
+            user.setPasswordUser(dtoUserEntity.getPasswordUser());
         }
+
+
         UserEntity updatedUser = userEntityRepository.save(user);
+
         return new DTOUserEntity().parseDTOUserEntity(updatedUser);
     }
+    @Transactional
+    public DTOUserEntity adminUpdate(String emailTarget, DTOUserEntity dtoUserEntity) {
+        UserEntity user = userEntityRepository.findByEmailUser(emailTarget)
+                .orElseThrow(() -> new NotFoundEntityException(
+                        ExceptionValues.USER_NOT_FOUND_CODE,
+                        "Usuario no encontrado",
+                        ExceptionValues.USER_NOT_FOUND_MESSAGE)
+                );
+        if (dtoUserEntity.getNameUser() != null) user.setNameUser(dtoUserEntity.getNameUser());
+        if (dtoUserEntity.getSurnameUser() != null) user.setSurnameUser(dtoUserEntity.getSurnameUser());
+        if (dtoUserEntity.getCellphoneUser() != null) user.setCellphoneUser(dtoUserEntity.getCellphoneUser());
 
-    public DTOUserEntity adminUpdate(String emailUser, DTOUserEntity dtoUserEntity){
-        UserEntity user = userEntityRepository.findByEmailUser(emailUser).orElseThrow(()-> new NotFoundEntityException(
-                ExceptionValues.USER_NOT_FOUND_CODE,
-                "User not found",
-                ExceptionValues.USER_NOT_FOUND_MESSAGE
-        ));
-        if (dtoUserEntity.getNameUser() != null) {
-            user.setNameUser(dtoUserEntity.getNameUser());
+        if (dtoUserEntity.getEmailUser() != null) {
+            user.setEmailUser(dtoUserEntity.getEmailUser());
         }
+
+        if (dtoUserEntity.getPasswordUser() != null) {
+            user.setPasswordUser(dtoUserEntity.getPasswordUser());
+        }
+
         UserEntity updatedUser = userEntityRepository.save(user);
         return new DTOUserEntity().parseDTOUserEntity(updatedUser);
+
     }
 }
-

@@ -29,6 +29,12 @@ public class UserEntityController {
     public ResponseEntity<DTOUserEntity> update(@PathVariable String email,@RequestBody DTOUserEntity dto){
         return ResponseEntity.ok(userEntityService.updateUser(email, dto));
     }
+    @PutMapping(path = "/adminUpdate/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DTOUserEntity> adminUpdate(@PathVariable String email, @RequestBody DTOUserEntity dto) {
+        return ResponseEntity.ok(userEntityService.adminUpdate(email, dto));
+    }
+    }
 
 
-}
+
