@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class ProductService {
@@ -57,6 +58,11 @@ public class ProductService {
     @Transactional
     public List<DTOProductClient> getAllClientProducts(){
 
+        //Buckshot roulette
+        Random random = new Random();
+        if (random.nextBoolean()){
+            throw new NotFoundEntityException("???", "???", "La ruleta ha dicho que no");
+        }
         List<Product> products = productRepository.findAll();
         List<DTOProductClient> dtoProductsClient = new ArrayList<>();
         for (Product product : products){
