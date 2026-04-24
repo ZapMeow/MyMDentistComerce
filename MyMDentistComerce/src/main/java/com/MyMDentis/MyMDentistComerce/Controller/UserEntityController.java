@@ -18,23 +18,25 @@ public class UserEntityController {
     @Autowired
     private UserEntityService userEntityService;
 
-
     @GetMapping(path = "/getUsers")
-    public ResponseEntity<List<DTOUserEntity>> getAllUsers(){
+    public ResponseEntity<List<DTOUserEntity>> getAllUsers()throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(userEntityService.getAllUsers());
     }
 
     @PutMapping(path = "/update/{email}")
     @PreAuthorize("permitAll()" )
-    public ResponseEntity<DTOUserEntity> update(@PathVariable String email,@RequestBody DTOUserEntity dto){
+    public ResponseEntity<DTOUserEntity> update(@PathVariable String email,@RequestBody DTOUserEntity dto) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(userEntityService.updateUser(email, dto));
     }
     @PutMapping(path = "/adminUpdate/{email}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DTOUserEntity> adminUpdate(@PathVariable String email, @RequestBody DTOUserEntity dto) {
+    public ResponseEntity<DTOUserEntity> adminUpdate(@PathVariable String email, @RequestBody DTOUserEntity dto) throws InterruptedException {
+        Thread.sleep(2000L);
         return ResponseEntity.ok(userEntityService.adminUpdate(email, dto));
     }
-    }
+}
 
 
 

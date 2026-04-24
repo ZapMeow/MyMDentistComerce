@@ -19,22 +19,26 @@ public class ReservedController {
     private ReservedService reservedService;
 
     @GetMapping(path = "/getAllReserved")
-    public ResponseEntity<List<Reserved>> getAllReserved(){
+    public ResponseEntity<List<Reserved>> getAllReserved() throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(reservedService.getAllReserved());
     }
 
     @GetMapping(path = "/getAvailableReserved")
-    public ResponseEntity<List<Reserved>> getAvailableReserved(){
+    public ResponseEntity<List<Reserved>> getAvailableReserved() throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(reservedService.getAvailableReserved());
     }
 
     @GetMapping(path = "/getNotAvailableReserved")
-    public ResponseEntity<List<Reserved>> getNotAvailableReserved(){
+    public ResponseEntity<List<Reserved>> getNotAvailableReserved() throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(reservedService.getNotAvailableReserved());
     }
 
     @GetMapping(path = "/getUserReserved/{idUser}")
-    public ResponseEntity<List<Reserved>> getProductReserved(@PathVariable Long idUser){
+    public ResponseEntity<List<Reserved>> getProductReserved(@PathVariable Long idUser) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(reservedService.getUserReserved(idUser));
     }
 

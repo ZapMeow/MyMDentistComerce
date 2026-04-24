@@ -19,62 +19,61 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    Logger log = Logger.getLogger("Debug log");
-
 
     @GetMapping(path = "/adminProducts")
-    public ResponseEntity<List<DTOProductAdmin>> getAllAdminProducts(){
-        log.info("getting admin products");
+    public ResponseEntity<List<DTOProductAdmin>> getAllAdminProducts() throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getAllAdminProducts());
     }
 
     @GetMapping(path = "/clientProducts")
-    public ResponseEntity<List<DTOProductClient>> getAllClientProducts(){
-        log.info("getting client products");
+    public ResponseEntity<List<DTOProductClient>> getAllClientProducts() throws InterruptedException {
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getAllClientProducts());
     }
 
     @GetMapping(path = "/adminProducts/page/{pageIndex}")
-    public ResponseEntity<List<DTOProductAdmin>> getAdminProductsByPage(@PathVariable int pageIndex){
+    public ResponseEntity<List<DTOProductAdmin>> getAdminProductsByPage(@PathVariable int pageIndex) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getProductsAdminByPage(pageIndex));
     }
 
     @GetMapping(path = "/clientProducts/page/{pageIndex}")
-    public ResponseEntity<List<DTOProductClient>> getClientProductsByPage(@PathVariable int pageIndex){
+    public ResponseEntity<List<DTOProductClient>> getClientProductsByPage(@PathVariable int pageIndex) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getProductsClientByPage(pageIndex));
     }
 
     @GetMapping(path = "/filterAdminProducts/{filter}")
-    public ResponseEntity<List<DTOProductAdmin>> getFilterAdminProducts(@PathVariable String filter){
-        log.info("getting filter admin products by " + filter);
+    public ResponseEntity<List<DTOProductAdmin>> getFilterAdminProducts(@PathVariable String filter) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.filterAdminProducts(filter));
     }
 
     @GetMapping(path = "/filterClientProducts/{filter}")
-    public ResponseEntity<List<DTOProductClient>> getFilterClientProducts(@PathVariable String filter){
-        log.info("getting filter client products by " + filter);
+    public ResponseEntity<List<DTOProductClient>> getFilterClientProducts(@PathVariable String filter) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.filterClientProducts(filter));
     }
 
     @PostMapping(path = "/saveProduct")
     @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name())")
-    public ResponseEntity<DTOProductAdmin> saveNewProduct(@RequestBody DTOProductAdmin dtoProductAdmin){
-        log.info("saving new product: " + dtoProductAdmin.toString());
+    public ResponseEntity<DTOProductAdmin> saveNewProduct(@RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
     }
 
     @PutMapping(path = "/editProduct/{productName}")
     @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name()) or hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
-    public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin){
-        log.info("editing a product with name " + productName);
-        log.info("the new product is " + dtoProductAdmin.toString());
+    public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
+        Thread.sleep(2000L);
         return ResponseEntity.ok(productService.editProduct(productName, dtoProductAdmin));
     }
 
     @DeleteMapping(path = "/deleteProduct/{productName}")
     @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
-    public ResponseEntity<String> deleteProduct(@PathVariable String productName){
-        System.out.println("deleting product " + productName);
+    public ResponseEntity<String> deleteProduct(@PathVariable String productName) throws InterruptedException{
+        Thread.sleep(2000L);
         return new ResponseEntity<>("Producto eliminado", HttpStatus.ACCEPTED);
     }
 }

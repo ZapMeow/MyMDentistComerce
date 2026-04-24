@@ -27,13 +27,15 @@ public class AuthController {
 
 
     @PostMapping(path = "/register")
-    public ResponseEntity<DTOUserEntity> registerUser(@RequestBody DTOUserEntity dtoUserEntity){
+    public ResponseEntity<DTOUserEntity> registerUser(@RequestBody DTOUserEntity dtoUserEntity) throws InterruptedException {
+        Thread.sleep(2000L);
         return ResponseEntity.ok(userEntityService.createUser(dtoUserEntity));
 
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<DTOJwt> sessionUser(@RequestBody DTOCredentials dtoCredentials) {
+    public ResponseEntity<DTOJwt> sessionUser(@RequestBody DTOCredentials dtoCredentials) throws InterruptedException {
+        Thread.sleep(2000L);
         return ResponseEntity.ok(userEntityService.sessionUser(dtoCredentials));
     }
 }
