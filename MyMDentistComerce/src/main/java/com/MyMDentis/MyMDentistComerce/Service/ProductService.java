@@ -2,6 +2,7 @@ package com.MyMDentis.MyMDentistComerce.Service;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
 import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
 import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
@@ -36,6 +37,8 @@ public class ProductService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
+    private final int PAGE_SIZE = 20;
+
     private final DTOProductAdmin dtoProductAdmin = new DTOProductAdmin();
     private final DTOProductClient dtoProductClient = new DTOProductClient();
     private final ProductVerification productVerification = new ProductVerification();
@@ -58,6 +61,7 @@ public class ProductService {
     @Transactional
     public List<DTOProductClient> getAllClientProducts(){
 
+
         //Buckshot roulette
         Random random = new Random();
         if (random.nextBoolean()){
@@ -78,7 +82,7 @@ public class ProductService {
         List<DTOProductAdmin> products = new ArrayList<>();
 
         //Spring use 0-based index and 20 is the pageSize
-        Pageable pageable = PageRequest.of(index-1, 20);
+        Pageable pageable = PageRequest.of(index-1, PAGE_SIZE);
         Page<Product> productPage = productRepository.findAll(pageable);
 
         for (Product product : productPage){
@@ -94,14 +98,27 @@ public class ProductService {
 
         List<DTOProductClient> products = new ArrayList<>();
 
-        //Spring use 0-based index and 20 is the pageSize
-        Pageable pageable = PageRequest.of(pageIndex-1, 20);
+        Pageable pageable = PageRequest.of(pageIndex-1, PAGE_SIZE);
         Page<Product> productPage = productRepository.findAll(pageable);
 
         for (Product product : productPage){
             products.add(dtoProductClient.parseDTOProductClient(product));
         }
+        return products;
+    }
 
+    @Transactional
+    public List<DTOProductClient> getFilterClientProductsByPage(String filter, int indexPage){
+        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow( () ->
+                new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE));
+
+        List<DTOProductClient> products = new ArrayList<>();
+        Pageable pageable = PageRequest.of(indexPage -1, PAGE_SIZE);
+        Page<Product> productPage = productRepository.findByDepartment(department, pageable);
+
+        for (Product product : productPage){
+            products.add(dtoProductClient.parseDTOProductClient(product));
+        }
         return products;
     }
 
@@ -307,6 +324,43 @@ public class ProductService {
     @Transactional
     public Optional<Department> existDepartment(String departmentName){
         return departmentRepository.findByNameDepartment(departmentName);
+    }
+
+
+
+
+
+    /////////////////////UTILS//////////////////////////////
+    @Transactional
+    public DTOUtilsProducts getMaxPages(){
+        long totalPages;
+        long total = productRepository.count();
+        if (total % 2 != 0){
+            totalPages = (total / PAGE_SIZE) + 1;
+        }else{
+            totalPages = total / PAGE_SIZE;
+        }
+        return DTOUtilsProducts.builder()
+                .totalProducts(total)
+                .totalPages(totalPages)
+                .build();
+    }
+
+    public DTOUtilsProducts getMaxPagesByDepartmentFilter(String filter){
+        Department department = departmentRepository.findByNameDepartment(filter)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE));
+        long totalPages;
+        long total = productRepository.countByDepartment(department);
+
+        if (total % PAGE_SIZE != 0){
+            totalPages = (total / PAGE_SIZE) + 1;
+        }else{
+            totalPages = total / PAGE_SIZE;
+        }
+        return DTOUtilsProducts.builder()
+                .totalProducts(total)
+                .totalPages(totalPages)
+                .build();
     }
 
 

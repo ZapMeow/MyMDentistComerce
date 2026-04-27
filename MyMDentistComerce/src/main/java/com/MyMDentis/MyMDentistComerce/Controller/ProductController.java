@@ -2,7 +2,7 @@ package com.MyMDentis.MyMDentistComerce.Controller;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
-import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
 import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,8 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Random;
-import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/MyMDentalCommerce/products")
@@ -58,6 +56,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.filterClientProducts(filter));
     }
 
+    @GetMapping(path = "/filterClientProductsByPage/{filter}/{page}")
+    public ResponseEntity<List<DTOProductClient>> getFilterClientProductsByPage(@PathVariable String filter, @PathVariable int page) throws InterruptedException {
+        Thread.sleep(2000L);
+        return ResponseEntity.ok(productService.getFilterClientProductsByPage(filter, page));
+    }
+
     @PostMapping(path = "/saveProduct")
     @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name())")
     public ResponseEntity<DTOProductAdmin> saveNewProduct(@RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
@@ -77,5 +81,23 @@ public class ProductController {
     public ResponseEntity<String> deleteProduct(@PathVariable String productName) throws InterruptedException{
         Thread.sleep(2000L);
         return new ResponseEntity<>("Producto eliminado", HttpStatus.ACCEPTED);
+    }
+
+
+
+
+
+
+
+    ///////////////////////Utils endpoints//////////////////////////////
+
+    @GetMapping(path = "/getMaxProductPages")
+    public ResponseEntity<DTOUtilsProducts> getMaxProductPages(){
+        return ResponseEntity.ok(productService.getMaxPages());
+    }
+
+    @GetMapping(path = "/getMaxProductPagesByDepartment/{nameDepartment}")
+    public ResponseEntity<DTOUtilsProducts> getMaxProductPagesByDepartment(@PathVariable String nameDepartment){
+        return ResponseEntity.ok(productService.getMaxPagesByDepartmentFilter(nameDepartment));
     }
 }
