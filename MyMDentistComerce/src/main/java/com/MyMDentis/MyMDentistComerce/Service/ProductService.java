@@ -47,6 +47,14 @@ public class ProductService {
     private static  final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     @Transactional
+    public DTOProductClient getClientProductById(Long idProduct) {
+        return dtoProductClient.parseDTOProductClient(productRepository.findById(idProduct)
+                .orElseThrow(() ->
+                new NotFoundEntityException
+                        (ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)));
+    }
+
+    @Transactional
     public List<DTOProductAdmin> getAllAdminProducts(){
 
         List<Product> products = productRepository.findAll();
@@ -362,6 +370,7 @@ public class ProductService {
                 .totalPages(totalPages)
                 .build();
     }
+
 
 
 }

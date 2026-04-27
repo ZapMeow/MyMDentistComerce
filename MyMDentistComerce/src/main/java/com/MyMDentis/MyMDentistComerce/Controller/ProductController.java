@@ -19,6 +19,12 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @GetMapping(path = "/getClientProductById/{idProduct}")
+    public ResponseEntity<DTOProductClient> getClientProductById(@PathVariable Long idProduct) throws InterruptedException {
+        Thread.sleep(2000L);
+        return ResponseEntity.ok(productService.getClientProductById(idProduct));
+    }
+
 
     @GetMapping(path = "/adminProducts")
     public ResponseEntity<List<DTOProductAdmin>> getAllAdminProducts() throws InterruptedException{
