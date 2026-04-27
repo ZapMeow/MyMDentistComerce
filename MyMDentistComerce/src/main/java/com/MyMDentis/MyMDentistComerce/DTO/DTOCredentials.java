@@ -10,4 +10,5 @@ public class DTOCredentials {
 
     private String emailUser;
     private String password;
+
 }

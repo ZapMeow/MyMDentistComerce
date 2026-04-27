@@ -12,4 +12,6 @@ public class DTOJwt {
     private String username;
     private Roles role;
     private String token;
+    private String useremail;
+    private Long usercellphone;
 }

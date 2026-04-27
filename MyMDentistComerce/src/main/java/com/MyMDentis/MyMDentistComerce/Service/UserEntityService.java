@@ -115,6 +115,8 @@ public class UserEntityService implements UserEntityAtributes {
                 String token = jwtService.generateToken(user.getNameUser(), user.getRole());
                 return DTOJwt.builder()
                         .username(user.getNameUser())
+                        .useremail(user.getEmailUser())
+                        .usercellphone(user.getCellphoneUser())
                         .token(token)
                         .role(user.getRole())
                         .build();
