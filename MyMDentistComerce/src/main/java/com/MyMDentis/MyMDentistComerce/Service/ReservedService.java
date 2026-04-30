@@ -4,8 +4,8 @@ import com.MyMDentis.MyMDentistComerce.DTO.DTOReserved;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
-import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ReservedRepository;
+import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,44 +17,54 @@ public class ReservedService {
 
     @Autowired
     private ReservedRepository reservedRepository;
-    @Autowired
-    private ProductRepository productRepository;
+
     @Autowired
     private UserEntityRepository userEntityRepository;
 
-    private final DTOReserved dtoReserved = new DTOReserved();
+    @Autowired
+    private ProductRepository productRepository;
 
-    public List<Reserved> getAllReserved(){
+
+    public List<Reserved> getAllOrders(){
         return reservedRepository.findAll();
     }
 
-    public List<Reserved> getUserReserved(Long idUserEntity){
-        return reservedRepository.findByUserEntity(idUserEntity);
+    public Reserved findOrderById(Long id){
+        return reservedRepository.findById(id).orElseThrow(() -> new RuntimeException("xd"));
     }
 
-    public List<Reserved> getNotAvailableReserved(){
-        return reservedRepository.findByApproved(false);
+    public List<Reserved> findByUser(Long idUserEntity){
+
+        UserEntity user = userEntityRepository.findById(idUserEntity).orElseThrow(
+                () -> new RuntimeException("xd1")
+        );
+
+        return reservedRepository.findByUserEntity(user);
     }
 
-    public List<Reserved> getAvailableReserved(){
-        return reservedRepository.findByApproved(true);
+    public List<Reserved> findActivesOrders(){
+        return reservedRepository.findByActiveReserved(true);
     }
 
-    public DTOReserved saveReserved(DTOReserved dtoReserved){
-        Product product = productRepository.findById(dtoReserved.getIdProduct()).orElse(null);
-        UserEntity user = userEntityRepository.findById(dtoReserved.getIdUserEntity()).orElse(null);
+    public List<Reserved> findNoActivesOrders(){
+        return reservedRepository.findByActiveReserved(false);
+    }
 
-        Reserved reserved = Reserved.builder()
+    public Reserved saveNewOrder(DTOReserved order){
+        UserEntity user = userEntityRepository.findById(order.getIdUserEntity()).orElseThrow(
+                () -> new RuntimeException("xdddddd")
+        );
+        Product product = productRepository.findById(order.getIdProduct()).orElseThrow(
+                () -> new RuntimeException("xd")
+        );
+
+        Reserved newOrder = Reserved.builder()
+                .codeReserved(order.getCodeReserved())
+                .quantityReserved(order.getQuantityReserved())
+                .activeReserved(order.isActiveReserved())
                 .product(product)
-                .stockUsed(dtoReserved.getStockUsed())
                 .userEntity(user)
-                .priceProduct(dtoReserved.getPriceProduct())
-                .reservedDate(dtoReserved.getReservedDate())
-                .expirationDate(dtoReserved.getExpirationDate())
-                .approved(dtoReserved.isApproved())
                 .build();
-
-        return dtoReserved.parseDTOReserved(reservedRepository.save(reserved));
+        return reservedRepository.save(newOrder);
     }
-
 }

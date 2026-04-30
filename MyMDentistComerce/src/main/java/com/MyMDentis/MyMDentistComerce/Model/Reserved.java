@@ -1,42 +1,33 @@
 package com.MyMDentis.MyMDentistComerce.Model;
 
+import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Date;
 
 @Builder
 @Entity
 @Table(name = "reserved_product")
-@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter @Setter
 public class Reserved {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_reserved", nullable = false, unique = true)
+    @Column(name = "id_reserved", unique = true, nullable = false, length = 8)
     private Long idReserved;
+    @Column(name = "code_reserved", unique = true, nullable = false, length = 100)
+    private String codeReserved;
+    @Column(name = "quantity_reserved", unique = false, nullable = false, length = 8)
+    private Long quantityReserved;
 
-    //-----------------------Product--------------------//
-    @ManyToOne(targetEntity = Product.class)
+    @ManyToOne
     private Product product;
-    @Column(name = "stock_used_product", length = 10, nullable = false, unique = false)
-    private Long stockUsed;
 
-    //-----------------------User--------------------//
-    @ManyToOne(targetEntity = UserEntity.class)
+    @ManyToOne
     private UserEntity userEntity;
 
-    //-----------------------Reserved Dates--------------------//
-
-    @Column(name = "price_product", length = 10, nullable = false, unique = false)
-    private Long priceProduct;
-    @Column(name = "date_reserved", nullable = false, unique = false)
-    private Date reservedDate;
-    @Column(name = "expiration_date", nullable = false, unique = false)
-    private Date expirationDate;
-    @Column(name = "approved_reserved", nullable = false, unique = false)
-    private boolean approved;
+    @Column
+    private boolean activeReserved;
 
 
 }

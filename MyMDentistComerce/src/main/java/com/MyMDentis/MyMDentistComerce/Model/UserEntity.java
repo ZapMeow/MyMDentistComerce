@@ -25,7 +25,6 @@ public class UserEntity {
     private String passwordUser;
     @Column(name = "cellphone_user", length = 9, nullable = true, unique = true)
     private Long cellphoneUser;
-    @Enumerated(EnumType.STRING)
     @Column(name = "role_user", length = 20, nullable = false)
     private Roles role;
 }
