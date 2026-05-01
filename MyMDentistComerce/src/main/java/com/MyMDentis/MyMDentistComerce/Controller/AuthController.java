@@ -5,6 +5,7 @@ import com.MyMDentis.MyMDentistComerce.DTO.DTOJwt;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUserEntity;
 import com.MyMDentis.MyMDentistComerce.Security.JwtService;
 import com.MyMDentis.MyMDentistComerce.Service.UserEntityService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -34,8 +35,10 @@ public class AuthController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<DTOJwt> sessionUser(@RequestBody DTOCredentials dtoCredentials) throws InterruptedException {
+    public ResponseEntity<DTOJwt> sessionUser(
+            @RequestBody DTOCredentials dtoCredentials,
+            HttpServletResponse response) throws InterruptedException {
         Thread.sleep(2000L);
-        return ResponseEntity.ok(userEntityService.sessionUser(dtoCredentials));
+        return ResponseEntity.ok(userEntityService.sessionUser(dtoCredentials, response));
     }
 }

@@ -13,6 +13,7 @@ import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
 import com.MyMDentis.MyMDentistComerce.Security.JwtService;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityAtributes;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityVerification;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -42,8 +43,14 @@ public class UserEntityService implements UserEntityAtributes {
     @Autowired
     private JwtService jwtService;
 
+
+    private final CookieService cookieService;
     private final DTOUserEntity dtoUserEntity = new DTOUserEntity();
     private final UserEntityVerification userEntityVerification = new UserEntityVerification();
+
+    public UserEntityService(CookieService cookieService) {
+        this.cookieService = cookieService;
+    }
 
     public List<DTOUserEntity> getAllUsers() {
         return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
@@ -103,7 +110,7 @@ public class UserEntityService implements UserEntityAtributes {
         return dtoUserEntity.parseDTOUserEntity(userEntityRepository.save(user));
     }
 
-    public DTOJwt sessionUser(DTOCredentials dtoCredentials) {
+    public DTOJwt sessionUser(DTOCredentials dtoCredentials, HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(dtoCredentials.getEmailUser(), dtoCredentials.getPassword())
@@ -113,6 +120,7 @@ public class UserEntityService implements UserEntityAtributes {
                         () -> new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE)
                 );
                 String token = jwtService.generateToken(user.getNameUser(), user.getRole());
+                cookieService.addHttpOnlyCookie("jwt", token , 7*24*60*60, response);
                 return DTOJwt.builder()
                         .username(user.getNameUser())
                         .useremail(user.getEmailUser())

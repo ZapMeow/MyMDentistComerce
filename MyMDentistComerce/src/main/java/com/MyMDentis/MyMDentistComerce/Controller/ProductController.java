@@ -1,8 +1,9 @@
 package com.MyMDentis.MyMDentistComerce.Controller;
-
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
+import com.MyMDentis.MyMDentistComerce.Model.Product;
+import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/MyMDentalCommerce/products")
@@ -18,6 +20,8 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private ProductRepository productRepository;
 
     @GetMapping(path = "/getClientProductById/{idProduct}")
     public ResponseEntity<DTOProductClient> getClientProductById(@PathVariable Long idProduct) throws InterruptedException {
@@ -90,12 +94,17 @@ public class ProductController {
     }
 
 
+    @GetMapping("/getProduct/{codeProduct}")
+    public ResponseEntity<Product> getProductByCode(@PathVariable String codeProduct) {
+        Optional<Product> product = productRepository.findByCodeProduct(codeProduct);
+        if (product.isPresent()) {
+            return ResponseEntity.ok(product.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-
-
-
-
-    ///////////////////////Utils endpoints//////////////////////////////
+     ///////////////////////Utils endpoints//////////////////////////////
 
     @GetMapping(path = "/getMaxProductPages")
     public ResponseEntity<DTOUtilsProducts> getMaxProductPages(){
