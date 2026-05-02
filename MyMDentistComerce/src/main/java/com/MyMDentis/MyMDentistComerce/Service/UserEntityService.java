@@ -119,7 +119,7 @@ public class UserEntityService implements UserEntityAtributes {
                 UserEntity user = userEntityRepository.findByEmailUser(dtoCredentials.getEmailUser()).orElseThrow(
                         () -> new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE)
                 );
-                String token = jwtService.generateToken(user.getNameUser(), user.getRole());
+                String token = jwtService.generateToken(user.getNameUser(), user.getRole(), user.getEmailUser());
                 cookieService.addHttpOnlyCookie("jwt", token , 7*24*60*60, response);
                 return DTOJwt.builder()
                         .username(user.getNameUser())

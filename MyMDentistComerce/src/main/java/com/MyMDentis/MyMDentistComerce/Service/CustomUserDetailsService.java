@@ -26,11 +26,24 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Usuario " + username + " no encontrado"));
 
-        return User.withUsername(userEntity.getEmailUser()) //
+        return User.withUsername(userEntity.getEmailUser())
                 .password(userEntity.getPasswordUser())
                 .authorities(Collections.singletonList(
                         new SimpleGrantedAuthority("ROLE_" + userEntity.getRole().name())
                 ))
                 .build();
     }
+
+    public UserDetails loadByEmailUser(String emailUser) throws UsernameNotFoundException {
+        UserEntity user = userEntityRepository.findByEmailUser(emailUser)
+                .orElseThrow(() -> new UsernameNotFoundException("Email " + emailUser + " not found in system"));
+
+        return User.withUsername(user.getEmailUser())
+                .password(user.getPasswordUser())
+                .authorities(Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                ))
+                .build();
+    }
+
 }

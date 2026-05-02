@@ -1,6 +1,6 @@
 package com.MyMDentis.MyMDentistComerce.Service;
 
-import com.MyMDentis.MyMDentistComerce.DTO.DTOReserved;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOReservedPetition;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
@@ -8,6 +8,8 @@ import com.MyMDentis.MyMDentistComerce.Repository.ReservedRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,21 +52,25 @@ public class ReservedService {
         return reservedRepository.findByActiveReserved(false);
     }
 
-    public Reserved saveNewOrder(DTOReserved order){
-        UserEntity user = userEntityRepository.findById(order.getIdUserEntity()).orElseThrow(
-                () -> new RuntimeException("xdddddd")
-        );
-        Product product = productRepository.findById(order.getIdProduct()).orElseThrow(
+    public DTOReservedPetition saveNewOrder(DTOReservedPetition dtoReservedPetition){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        System.out.println(authentication);
+
+
+        /*Product product = productRepository.findById(dtoReservedPetition.getIdProduct()).orElseThrow(
                 () -> new RuntimeException("xd")
         );
 
         Reserved newOrder = Reserved.builder()
-                .codeReserved(order.getCodeReserved())
-                .quantityReserved(order.getQuantityReserved())
-                .activeReserved(order.isActiveReserved())
+                .codeReserved(dtoReservedPetition.getCodeReserved())
+                .quantityReserved(dtoReservedPetition.getQuantityReserved())
+                .activeReserved(true)
                 .product(product)
                 .userEntity(user)
                 .build();
-        return reservedRepository.save(newOrder);
+        return reservedRepository.save(newOrder);*/
+        return DTOReservedPetition.builder().build();
     }
 }

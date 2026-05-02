@@ -1,10 +1,12 @@
 package com.MyMDentis.MyMDentistComerce.Controller;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOReserved;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOReservedPetition;
 import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import com.MyMDentis.MyMDentistComerce.Service.ReservedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +17,6 @@ public class ReservedController {
 
     @Autowired
     private ReservedService reservedService;
-
 
 
     @GetMapping("/getAllOrders")
@@ -43,9 +44,10 @@ public class ReservedController {
         return ResponseEntity.ok(reservedService.findByUser(idUserEntity));
     }
 
-    @PostMapping("/saveNewOrder")
-    public ResponseEntity<Reserved> saveNewOrder(DTOReserved order){
-        return ResponseEntity.ok(reservedService.saveNewOrder(order));
+    @PostMapping("/saveNewReserved")
+    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
+    public ResponseEntity<DTOReservedPetition> saveNewReserved(@RequestBody DTOReservedPetition dtoReservedPetition){
+        return ResponseEntity.ok(reservedService.saveNewOrder(dtoReservedPetition));
     }
 
 }

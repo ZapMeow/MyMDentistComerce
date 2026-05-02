@@ -25,14 +25,31 @@ public class JwtService {
     }
 
 
-    public String generateToken(String username, Roles rol){
+    public String generateToken(String username, Roles rol, String emailUser){
         return Jwts.builder()
                 .subject(username)
                 .claim("role", rol)
+                .claim("email", emailUser)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
+    }
+
+    public String extractEmailUser(String token){
+        try{
+             Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            System.out.println("The email is " + claims.get("email", String.class));
+            return claims.get("email", String.class);
+
+        }catch (JwtException ex){
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     public String extractUsername(String token){
