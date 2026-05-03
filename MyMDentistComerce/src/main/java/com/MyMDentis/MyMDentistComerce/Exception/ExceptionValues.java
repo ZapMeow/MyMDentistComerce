@@ -49,5 +49,7 @@ public interface ExceptionValues {
     String EMAIL_USER_ALREADY_EXIST_CODE = "U-004";
     String EMAIL_USER_ALREADY_EXIST_MESSAGE = "Ya existe un usuario con este email";
 
+    String VALUES_NOT_COMPATIBLE_REQUEST_CODE = "R-001";
+    String VALUES_NOT_COMPATIBLE_REQUEST_MESSAGE = "Valores de la peticion no compatibles con la entrada";
 
 }
