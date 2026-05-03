@@ -11,6 +11,7 @@ import com.MyMDentis.MyMDentistComerce.Model.Roles;
 import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
 import com.MyMDentis.MyMDentistComerce.Repository.UserEntityRepository;
 import com.MyMDentis.MyMDentistComerce.Security.JwtService;
+import com.MyMDentis.MyMDentistComerce.Verification.Entities;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityAtributes;
 import com.MyMDentis.MyMDentistComerce.Verification.UserEntityVerification;
 import jakarta.servlet.http.HttpServletResponse;
@@ -53,17 +54,15 @@ public class UserEntityService implements UserEntityAtributes {
     }
 
     public List<DTOUserEntity> getAllUsers() {
-        return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
-    }
-
-    public List<DTOUserEntity> getRole(String email) {
-        return userEntityRepository.findByEmailUser(email).stream().map(dtoUserEntity::parseDTOUserEntity).toList();
+        List<UserEntity> users = userEntityRepository.findAll();
+        //return userEntityRepository.findAll().stream().map(dtoUserEntity::parseDTOUserEntity).toList();
+        return dtoUserEntity.parseDTOUserEntityList(users);
     }
 
     public DTOUserEntity findUserByUsername(String username) {
 
         UserEntity user = userEntityRepository.findByNameUser(username).orElseThrow(() ->
-                new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, "Usuario", ExceptionValues.USER_NOT_FOUND_MESSAGE));
+                new NotFoundEntityException(ExceptionValues.USER_NOT_FOUND_CODE, Entities.USER_ENTITY, ExceptionValues.USER_NOT_FOUND_MESSAGE));
 
         return dtoUserEntity.parseDTOUserEntity(Objects.requireNonNull(userEntityRepository.findByNameUser(username).orElse(null)));
     }
@@ -99,6 +98,25 @@ public class UserEntityService implements UserEntityAtributes {
     }
 
     public DTOUserEntity createDefaultUser(DTOUserEntity dtoUserEntity) {
+
+        //if (userEntityVerification.validNullsUserEntity(dtoUserEntity)) {
+        //    throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+        //}
+
+        //String exception = userEntityVerification.validUserEntityValues(dtoUserEntity);
+
+        //if (exception != null) {
+        //    throw new InvalidValuesEntityException(ExceptionValues.USER_REGISTER_INVALID_CODE, exception, ExceptionValues.USER_REGISTER_INVALID_MESSAGE);
+        //}
+
+        if (entityExist(dtoUserEntity.getNameUser(), dtoUserEntity.getSurnameUser())) {
+            throw new InvalidValuesEntityException(ExceptionValues.USER_ALREADY_EXIST_CODE, NAME_USER + " / " + SURNAME_USER, ExceptionValues.USER_ALREADY_EXIST_MESSAGE);
+        }
+
+        if (emailRegistered(dtoUserEntity.getEmailUser())) {
+            throw new InvalidValuesEntityException(ExceptionValues.EMAIL_USER_ALREADY_EXIST_CODE, EMAIL_USER, ExceptionValues.EMAIL_USER_ALREADY_EXIST_MESSAGE);
+        }
+
         UserEntity user = UserEntity.builder()
                 .cellphoneUser(dtoUserEntity.getCellphoneUser())
                 .emailUser(dtoUserEntity.getEmailUser())
@@ -143,10 +161,7 @@ public class UserEntityService implements UserEntityAtributes {
         return user.isPresent();
     }
 
-    public boolean entityExist(String nameUser, String surnameUser) {
-        Optional<UserEntity> user = userEntityRepository.findByNameUserAndSurnameUser(nameUser, surnameUser);
-        return user.isPresent();
-    }
+
 
     @Transactional
     public DTOUserEntity updateUser(String emailUser, DTOUserEntity dtoUserEntity) {
@@ -196,5 +211,10 @@ public class UserEntityService implements UserEntityAtributes {
         UserEntity updatedUser = userEntityRepository.save(user);
         return new DTOUserEntity().parseDTOUserEntity(updatedUser);
 
+    }
+
+    public boolean entityExist(String nameUser, String surnameUser) {
+        Optional<UserEntity> user = userEntityRepository.findByNameUserAndSurnameUser(nameUser, surnameUser);
+        return user.isPresent();
     }
 }

@@ -4,6 +4,9 @@ import com.MyMDentis.MyMDentistComerce.Model.Roles;
 import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Builder
 @Getter @Setter
 @AllArgsConstructor
@@ -26,5 +29,14 @@ public class DTOUserEntity {
                 .cellphoneUser(userEntity.getCellphoneUser())
                 .role(userEntity.getRole())
                 .build();
+    }
+
+    public List<DTOUserEntity> parseDTOUserEntityList(List<UserEntity> users) {
+
+        List<DTOUserEntity> dtoUsers = new ArrayList<>();
+        for (UserEntity user : users) {
+            dtoUsers.add(parseDTOUserEntity(user));
+        }
+        return dtoUsers;
     }
 }
