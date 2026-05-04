@@ -23,35 +23,42 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private Logger log = Logger.getLogger(JwtAuthFilter.class.getName());
 
-    public JwtAuthFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService){
+    public JwtAuthFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
     }
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        String authHeader = request.getHeader("Authorization");
-        log.info("New request in " + path);
-        log.info(authHeader);
 
-        if (path.startsWith("/MyMDentalCommerce/products")){
-            log.info("no authorization needed");
+        if (path.contains("/login")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")){
+        String token = null;
 
-            try{
-                String token = authHeader.substring(7);
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
-                if(jwtService.validToken(token)){
+        if (token != null) {
+            try {
+                if (jwtService.validToken(token)) {
                     String username = jwtService.extractUsername(token);
-                    String email = jwtService.extractEmailUser(token);
-                    UserDetails userDetails = customUserDetailsService.loadByEmailUser(email);
+
+                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(
@@ -60,17 +67,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     userDetails.getAuthorities()
                             );
 
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    authenticationToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }else{
-                    System.out.println("Token invalido " + token);
+
+                } else {
+                    System.out.println("Token inválido");
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
-            System.out.println("no Bearer found");
         }
+
         filterChain.doFilter(request, response);
     }
 }
