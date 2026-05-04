@@ -4,6 +4,8 @@ import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Builder
 @Entity
 @Table(name = "reserved_product")
@@ -19,6 +21,12 @@ public class Reserved {
     private String codeReserved;
     @Column(name = "quantity_reserved", unique = false, nullable = false, length = 8)
     private Long quantityReserved;
+
+    //TIME
+    @Column(name = "start_date_reserved", unique = false, nullable = false, length = 20)
+    private Date startDate;
+    @Column(name = "expiration_date_reserved", unique = false, nullable = false, length = 20)
+    private Date expirationDate;
 
     @ManyToOne
     private Product product;

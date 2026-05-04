@@ -49,7 +49,13 @@ public interface ExceptionValues {
     String EMAIL_USER_ALREADY_EXIST_CODE = "U-004";
     String EMAIL_USER_ALREADY_EXIST_MESSAGE = "Ya existe un usuario con este email";
 
+    String NOT_USER_CREDENTIALS_CODE = "U-005";
+    String NOT_USER_CREDENTIALS_MESSAGE = "Usuario sin credenciales";
+
     String VALUES_NOT_COMPATIBLE_REQUEST_CODE = "R-001";
     String VALUES_NOT_COMPATIBLE_REQUEST_MESSAGE = "Valores de la peticion no compatibles con la entrada";
+
+    String INVALID_STOCK_REQUEST_CODE = "R-001";
+    String INVALID_STOCK_REQUEST_MESSAGE = "No se puede pedir mas stock de la que existe";
 
 }

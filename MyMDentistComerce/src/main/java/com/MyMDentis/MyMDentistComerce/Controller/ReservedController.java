@@ -46,8 +46,8 @@ public class ReservedController {
 
     @PostMapping("/saveNewReserved")
     @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
-    public ResponseEntity<DTOReservedPetition> saveNewReserved(@RequestBody DTOReservedPetition dtoReservedPetition){
-        return ResponseEntity.ok(reservedService.saveNewOrder(dtoReservedPetition));
+    public ResponseEntity<List<DTOReserved>> saveNewReserved(@RequestBody List<DTOReservedPetition> petitions){
+        return ResponseEntity.ok(reservedService.saveNewOrder(petitions));
     }
 
 }

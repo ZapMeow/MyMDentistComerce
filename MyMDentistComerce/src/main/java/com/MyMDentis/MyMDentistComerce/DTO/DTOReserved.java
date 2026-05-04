@@ -3,9 +3,12 @@ package com.MyMDentis.MyMDentistComerce.DTO;
 import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import lombok.*;
 
+import java.util.Date;
+
 @Builder
 @Getter @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class DTOReserved {
 
     private Long idReserved;
@@ -15,6 +18,9 @@ public class DTOReserved {
     private Long idUserEntity;
     private boolean activeReserved;
 
+    private Date startDateReserved;
+    private Date expirationDateReserved;
+
     public DTOReserved parseDTOOrder(Reserved reserved){
         return DTOReserved.builder()
                 .idReserved(reserved.getIdReserved())
@@ -22,6 +28,8 @@ public class DTOReserved {
                 .quantityReserved(reserved.getQuantityReserved())
                 .idProduct(reserved.getProduct().getIdProduct())
                 .idUserEntity(reserved.getUserEntity().getIdUser())
+                .startDateReserved(reserved.getStartDate())
+                .expirationDateReserved(reserved.getExpirationDate())
                 .build();
     }
 
