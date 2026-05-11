@@ -12,9 +12,7 @@ import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Repository.DepartmentRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Verification.Entities;
-import com.MyMDentis.MyMDentistComerce.Verification.ProductAtributes;
 import com.MyMDentis.MyMDentistComerce.Verification.ProductVerification;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class ProductService {
@@ -70,11 +67,7 @@ public class ProductService {
     public List<DTOProductClient> getAllClientProducts(){
 
 
-        //Buckshot roulette
-        Random random = new Random();
-        if (random.nextBoolean()){
-            throw new NotFoundEntityException("???", "???", "La ruleta ha dicho que no");
-        }
+
         List<Product> products = productRepository.findAll();
         List<DTOProductClient> dtoProductsClient = new ArrayList<>();
         for (Product product : products){
@@ -86,6 +79,9 @@ public class ProductService {
 
     @Transactional
     public List<DTOProductAdmin> getProductsAdminByPage(int index){
+        if (index < 1) {
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
+        }
 
         List<DTOProductAdmin> products = new ArrayList<>();
 
@@ -103,6 +99,9 @@ public class ProductService {
 
     @Transactional
     public List<DTOProductClient> getProductsClientByPage(int pageIndex) {
+        if (pageIndex < 1) {
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
+        }
 
         List<DTOProductClient> products = new ArrayList<>();
 
@@ -117,6 +116,10 @@ public class ProductService {
 
     @Transactional
     public List<DTOProductClient> getFilterClientProductsByPage(String filter, int indexPage){
+        if (indexPage < 1) {
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
+        }
+        
         Department department = departmentRepository.findByNameDepartment(filter).orElseThrow( () ->
                 new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE));
 
@@ -133,47 +136,56 @@ public class ProductService {
     @Transactional
     public DTOProductAdmin saveNewProduct(DTOProductAdmin dtoProductAdmin) {
 
-        if (productVerification.nullVerification(dtoProductAdmin)){
+        String exception = productVerification.nullVerification(dtoProductAdmin);
+
+        if (exception != null){
             throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                    exception,
                     ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
-        if (productVerification.validValues(dtoProductAdmin) != null){
+
+        exception = productVerification.validValues(dtoProductAdmin);
+
+        if (exception != null){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
-                    productVerification.validValues(dtoProductAdmin),
+                    exception,
                     ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
+        if (productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
-                                                    ProductAtributes.PRODUCT_CODE,
+                                                    "Codigo del producto",
                                                     ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
+        if (productVerification.validPriceCorrelation(dtoProductAdmin)){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
-                                                    ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
+                                                    "Precio del producto / Costo del producto",
                                                     ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validStockCorrelation(dtoProductAdmin)){
+        if (productVerification.validStockCorrelation(dtoProductAdmin)){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
-                                                    ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
+                                                    "Stock del producto / Stock critico del producto",
                                                     ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
         }
         if (existCode(dtoProductAdmin.getCodeProduct())){
             throw new InvalidValuesEntityException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
-                                                    ProductAtributes.PRODUCT_CODE,
+                                                    "Codigo del producto",
                                                     ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (existProductName(dtoProductAdmin.getProductName())){
             throw new InvalidValuesEntityException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
-                                                    ProductAtributes.PRODUCT_NAME,
+                                                    "Nombre del producto",
                                                     ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
         if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
             throw new InvalidValuesEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
-                                                    ProductAtributes.PRODUCT_DEPARTMENT,
+                                                    "Departamento del producto",
                                                     ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
 
-        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment()).orElse(null);
+        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment())
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE,
+                        Entities.DEPARTMENT,
+                        ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE));
 
         Product newProduct = Product.builder()
                 .codeProduct(dtoProductAdmin.getCodeProduct().trim())
@@ -193,96 +205,96 @@ public class ProductService {
     @Transactional
     public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
 
-        if (productVerification.nullProductName(productName)){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
-                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
-        }
+        String exception = productVerification.nullVerification(dtoProductAdmin);
 
-        Product product = productRepository.findByProductName(productName).orElse(null);
-        if (product == null){
-            throw new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
-                                                Entities.PRODUCT,
-                                                ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE);
-        }
-
-        Department department = departmentRepository.findByNameDepartment(product.getDepartment().getNameDepartment()).orElse(null);
-        if (department == null){
+        if (exception != null){
             throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
-                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
-        }
-
-        if (productVerification.nullVerification(dtoProductAdmin)){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
+                    exception,
                     ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
-        if (productVerification.validValues(dtoProductAdmin) != null){
+
+        exception = productVerification.validValues(dtoProductAdmin);
+
+        if (exception != null){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
-                    productVerification.validValues(dtoProductAdmin),
+                    exception,
                     ExceptionValues.INVALID_VALUES_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
+        if (productVerification.validPatter(dtoProductAdmin.getCodeProduct())){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_CODE,
-                    ProductAtributes.PRODUCT_CODE,
+                    "Codigo del producto",
                     ExceptionValues.INVALID_PRODUCT_CODE_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validPriceCorrelation(dtoProductAdmin)){
+        if (productVerification.validPriceCorrelation(dtoProductAdmin)){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_CODE,
-                    ProductAtributes.PRODUCT_PRICE + "/" + ProductAtributes.PRODUCT_COST_PRICE,
+                    "Precio del producto / Costo del producto",
                     ExceptionValues.INVALID_PRICE_PRODUCT_EXCEPTION_MESSAGE);
         }
-        if (!productVerification.validStockCorrelation(dtoProductAdmin)){
+        if (productVerification.validStockCorrelation(dtoProductAdmin)){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_CODE,
-                    ProductAtributes.PRODUCT_STOCK + "/" + ProductAtributes.PRODUCT_CRITIC,
+                    "Stock del producto / Stock critico del producto",
                     ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
         }
-        if (!product.getCodeProduct().equals(dtoProductAdmin.getCodeProduct()) && existCode(dtoProductAdmin.getCodeProduct())){
+
+        Product productToEdit = productRepository.findByProductName(productName).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)
+        );
+
+        Optional<Product> existingCodeProduct = productRepository.findByCodeProduct(dtoProductAdmin.getCodeProduct());
+        if (existingCodeProduct.isPresent() && !existingCodeProduct.get().getIdProduct().equals(productToEdit.getIdProduct())) {
             throw new InvalidValuesEntityException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
-                    ProductAtributes.PRODUCT_CODE,
+                    "Codigo del producto",
                     ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
-        if (!product.getProductName().equals(dtoProductAdmin.getProductName()) && existProductName(dtoProductAdmin.getProductName())){
+
+        Optional<Product> existingNameProduct = productRepository.findByProductName(dtoProductAdmin.getProductName());
+        if (existingNameProduct.isPresent() && !existingNameProduct.get().getIdProduct().equals(productToEdit.getIdProduct())) {
             throw new InvalidValuesEntityException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
-                    ProductAtributes.PRODUCT_NAME,
+                    "Nombre del producto",
                     ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
+
         if (existDepartment(dtoProductAdmin.getNameDepartment()).isEmpty()){
             throw new InvalidValuesEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE,
-                    ProductAtributes.PRODUCT_DEPARTMENT,
+                    "Departamento del producto",
                     ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
 
-        product.setCodeProduct(dtoProductAdmin.getCodeProduct().trim());
-        product.setCriticProduct(dtoProductAdmin.getCriticProduct());
-        product.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
-        product.setStockProduct(dtoProductAdmin.getStockProduct());
-        product.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null);
-        product.setPriceProduct(dtoProductAdmin.getPriceProduct());
-        product.setProductName(dtoProductAdmin.getProductName().trim());
-        product.setDepartment(department);
+        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment())
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE,
+                        Entities.DEPARTMENT,
+                        ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE));
 
-        productRepository.save(product);
-        return dtoProductAdmin.parseDTOProductAdmin(product);
+        productToEdit.setProductName(dtoProductAdmin.getProductName());
+        productToEdit.setCodeProduct(dtoProductAdmin.getCodeProduct());
+        productToEdit.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct());
+        productToEdit.setPriceProduct(dtoProductAdmin.getPriceProduct());
+        productToEdit.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
+        productToEdit.setStockProduct(dtoProductAdmin.getStockProduct());
+        productToEdit.setCriticProduct(dtoProductAdmin.getCriticProduct());
+        productToEdit.setDepartment(department);
+
+        return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(productToEdit));
 
     }
 
     @Transactional
     public void deleteProduct(String productName) {
         if (productName == null || productName.trim().isEmpty()){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
+            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, "Nombre del producto", ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
         }
 
-        Product product = productRepository.findByProductName(productName).orElse(null);
-        if (product == null){
-            throw new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
-                    Entities.PRODUCT,
-                    ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE);
-        }
+        Product product = productRepository.findByProductName(productName).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)
+        );
         productRepository.deleteByProductName(productName);
     }
 
     @Transactional
     public List<DTOProductAdmin> filterAdminProducts(String filter) {
-        Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
+        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
+        );
 
         List<Product> products = productRepository.findByDepartment(department);
         List<DTOProductAdmin> dtoProductAdmins = new ArrayList<>();
@@ -296,13 +308,9 @@ public class ProductService {
 
     @Transactional
     public List<DTOProductClient> filterClientProducts(String filter) {
-        Department department = departmentRepository.findByNameDepartment(filter).orElse(null);
-
-        if (department == null){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
-                                                ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
-
-        }
+        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
+        );
 
         List<Product> products = productRepository.findByDepartment(department);
         List<DTOProductClient> dtoProductClients = new ArrayList<>();
@@ -341,13 +349,8 @@ public class ProductService {
     /////////////////////UTILS//////////////////////////////
     @Transactional
     public DTOUtilsProducts getMaxPages(){
-        long totalPages;
         long total = productRepository.count();
-        if (total % 2 != 0){
-            totalPages = (total / PAGE_SIZE) + 1;
-        }else{
-            totalPages = total / PAGE_SIZE;
-        }
+        long totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
         return DTOUtilsProducts.builder()
                 .totalProducts(total)
                 .totalPages(totalPages)
@@ -357,14 +360,8 @@ public class ProductService {
     public DTOUtilsProducts getMaxPagesByDepartmentFilter(String filter){
         Department department = departmentRepository.findByNameDepartment(filter)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE));
-        long totalPages;
         long total = productRepository.countByDepartment(department);
-
-        if (total % PAGE_SIZE != 0){
-            totalPages = (total / PAGE_SIZE) + 1;
-        }else{
-            totalPages = total / PAGE_SIZE;
-        }
+        long totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
         return DTOUtilsProducts.builder()
                 .totalProducts(total)
                 .totalPages(totalPages)

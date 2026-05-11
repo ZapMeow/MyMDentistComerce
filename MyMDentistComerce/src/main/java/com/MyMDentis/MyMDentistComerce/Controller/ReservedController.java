@@ -45,8 +45,9 @@ public class ReservedController {
     }
 
     @PostMapping("/saveNewReserved")
-    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
-    public ResponseEntity<List<DTOReserved>> saveNewReserved(@RequestBody List<DTOReservedPetition> petitions){
+    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).CLIENT.name())")
+    public ResponseEntity<List<DTOReserved>> saveNewReserved(@RequestBody List<DTOReservedPetition> petitions) throws InterruptedException {
+        Thread.sleep(2000L);
         return ResponseEntity.ok(reservedService.saveNewOrder(petitions));
     }
 

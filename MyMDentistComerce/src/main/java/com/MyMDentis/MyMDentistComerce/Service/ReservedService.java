@@ -118,6 +118,7 @@ public class ReservedService {
         }else{
             throw new NullValuesEntityException(
                     ExceptionValues.NOT_USER_CREDENTIALS_CODE,
+                    Entities.USER_ENTITY,
                     ExceptionValues.NOT_USER_CREDENTIALS_MESSAGE
             );
         }

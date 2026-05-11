@@ -1,12 +1,10 @@
 package com.MyMDentis.MyMDentistComerce.Controller;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUserEntity;
-import com.MyMDentis.MyMDentistComerce.Model.UserEntity;
 import com.MyMDentis.MyMDentistComerce.Service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,13 +26,13 @@ public class UserEntityController {
     @PreAuthorize("permitAll()" )
     public ResponseEntity<DTOUserEntity> update(@PathVariable String email,@RequestBody DTOUserEntity dto) throws InterruptedException{
         Thread.sleep(2000L);
-        return ResponseEntity.ok(userEntityService.updateUser(email, dto));
+        return ResponseEntity.ok(userEntityService.updateUser(email, dto, false));
     }
     @PutMapping(path = "/adminUpdate/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DTOUserEntity> adminUpdate(@PathVariable String email, @RequestBody DTOUserEntity dto) throws InterruptedException {
         Thread.sleep(2000L);
-        return ResponseEntity.ok(userEntityService.adminUpdate(email, dto));
+        return ResponseEntity.ok(userEntityService.adminUpdateUser(email, dto, false));
     }
 }
 
