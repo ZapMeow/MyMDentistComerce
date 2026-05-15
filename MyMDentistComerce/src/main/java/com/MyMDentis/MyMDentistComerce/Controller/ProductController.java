@@ -7,9 +7,11 @@ import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,19 +29,6 @@ public class ProductController {
     public ResponseEntity<DTOProductClient> getClientProductById(@PathVariable Long idProduct) throws InterruptedException {
         Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getClientProductById(idProduct));
-    }
-
-
-    @GetMapping(path = "/adminProducts")
-    public ResponseEntity<List<DTOProductAdmin>> getAllAdminProducts() throws InterruptedException{
-        Thread.sleep(2000L);
-        return ResponseEntity.ok(productService.getAllAdminProducts());
-    }
-
-    @GetMapping(path = "/clientProducts")
-    public ResponseEntity<List<DTOProductClient>> getAllClientProducts() throws InterruptedException {
-        Thread.sleep(2000L);
-        return ResponseEntity.ok(productService.getAllClientProducts());
     }
 
     @GetMapping(path = "/adminProducts/page/{pageIndex}")
@@ -60,48 +49,32 @@ public class ProductController {
         return ResponseEntity.ok(productService.filterAdminProducts(filter));
     }
 
-    @GetMapping(path = "/filterClientProducts/{filter}")
-    public ResponseEntity<List<DTOProductClient>> getFilterClientProducts(@PathVariable String filter) throws InterruptedException{
-        Thread.sleep(2000L);
-        return ResponseEntity.ok(productService.filterClientProducts(filter));
-    }
-
     @GetMapping(path = "/filterClientProductsByPage/{filter}/{page}")
     public ResponseEntity<List<DTOProductClient>> getFilterClientProductsByPage(@PathVariable String filter, @PathVariable int page) throws InterruptedException {
         Thread.sleep(2000L);
         return ResponseEntity.ok(productService.getFilterClientProductsByPage(filter, page));
     }
 
-    @PostMapping(path = "/saveProduct")
-    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name())")
-    public ResponseEntity<DTOProductAdmin> saveNewProduct(@RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
+    @PostMapping(path = "/saveProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DTOProductAdmin> saveNewProduct(
+            @RequestPart("product") DTOProductAdmin dtoProductAdmin,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) throws InterruptedException{
+        
         Thread.sleep(2000L);
+        
         return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
     }
 
     @PutMapping(path = "/editProduct/{productName}")
-    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).WORKER.name()) or hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
     public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
         Thread.sleep(2000L);
         return ResponseEntity.ok(productService.editProduct(productName, dtoProductAdmin));
     }
 
     @DeleteMapping(path = "/deleteProduct/{productName}")
-    @PreAuthorize("hasRole(T(com.MyMDentis.MyMDentistComerce.Model.Roles).ADMINISTRATOR.name())")
     public ResponseEntity<String> deleteProduct(@PathVariable String productName) throws InterruptedException{
         Thread.sleep(2000L);
         return new ResponseEntity<>("Producto eliminado", HttpStatus.ACCEPTED);
-    }
-
-
-    @GetMapping("/getProduct/{codeProduct}")
-    public ResponseEntity<Product> getProductByCode(@PathVariable String codeProduct) {
-        Optional<Product> product = productRepository.findByCodeProduct(codeProduct);
-        if (product.isPresent()) {
-            return ResponseEntity.ok(product.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
     }
 
      ///////////////////////Utils endpoints//////////////////////////////

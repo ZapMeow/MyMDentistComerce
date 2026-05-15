@@ -1,5 +1,6 @@
 package com.MyMDentis.MyMDentistComerce.Security;
 
+import com.MyMDentis.MyMDentistComerce.Model.Roles;
 import com.MyMDentis.MyMDentistComerce.Service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,10 +45,56 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sess ->
                         sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/MyMDentalCommerce/Orders/saveNewReserved").authenticated()
-                                .anyRequest().
-                                permitAll()).build();
+                .authorizeHttpRequests(auth -> auth
+                        //----------------- SESIÓN Y REGISTRO -----------------
+                        .requestMatchers("/MyMDentalCommerce/session/**").permitAll()
+
+                        //----------------- PRODUCTOS (PÚBLICOS) -----------------
+                        .requestMatchers(
+                                "/MyMDentalCommerce/products/clientProducts",
+                                "/MyMDentalCommerce/products/clientProducts/page/**",
+                                "/MyMDentalCommerce/products/getClientProductById/**",
+                                "/MyMDentalCommerce/products/filterClientProducts/**",
+                                "/MyMDentalCommerce/products/filterClientProductsByPage/**",
+                                "/MyMDentalCommerce/products/getProduct/**",
+                                "/MyMDentalCommerce/products/getMaxProductPages",
+                                "/MyMDentalCommerce/products/getMaxProductPagesByDepartment/**"
+                        ).permitAll()
+
+                        //----------------- PRODUCTOS (TRABAJADOR Y ADMIN) -----------------
+                        .requestMatchers(
+                                "/MyMDentalCommerce/products/adminProducts",
+                                "/MyMDentalCommerce/products/adminProducts/page/**",
+                                "/MyMDentalCommerce/products/filterAdminProducts/**",
+                                "/MyMDentalCommerce/products/saveProduct",
+                                "/MyMDentalCommerce/products/editProduct/**"
+                        ).hasAnyAuthority(Roles.ADMINISTRATOR.name(), Roles.WORKER.name())
+
+                        //----------------- PRODUCTOS (SOLO ADMIN) -----------------
+                        .requestMatchers("/MyMDentalCommerce/products/deleteProduct/**")
+                        .hasAuthority(Roles.ADMINISTRATOR.name())
+
+                        //----------------- USUARIOS -----------------
+                        .requestMatchers("/MyMDentalCommerce/users/getUsers", "/MyMDentalCommerce/users/adminUpdate/**")
+                        .hasAuthority(Roles.ADMINISTRATOR.name())
+                        .requestMatchers("/MyMDentalCommerce/users/update/**")
+                        .authenticated()
+
+                        //----------------- DEPARTAMENTOS -----------------
+                        .requestMatchers("/MyMDentalCommerce/departments/getDepartments").permitAll()
+
+                        //----------------- RESERVAS -----------------
+                        .requestMatchers(
+                                "/MyMDentalCommerce/Reserved/getAllReserved",
+                                "/MyMDentalCommerce/Reserved/getActiveReserved",
+                                "/MyMDentalCommerce/Reserved/getNoActiveReserved",
+                                "/MyMDentalCommerce/Reserved/getReservedById/**",
+                                "/MyMDentalCommerce/Reserved/getReservedByUser/**"
+                        ).hasAnyAuthority(Roles.ADMINISTRATOR.name(), Roles.WORKER.name())
+                        .requestMatchers("/MyMDentalCommerce/Reserved/saveNewReserved")
+                        .authenticated()
+                        .anyRequest().denyAll()
+                ).build();
 
     }
 

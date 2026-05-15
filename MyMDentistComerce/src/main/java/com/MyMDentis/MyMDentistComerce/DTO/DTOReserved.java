@@ -3,7 +3,9 @@ package com.MyMDentis.MyMDentistComerce.DTO;
 import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Builder
 @Getter @Setter
@@ -15,7 +17,7 @@ public class DTOReserved {
     private String codeReserved;
     private Long quantityReserved;
     private Long idProduct;
-    private Long idUserEntity;
+    private String emailUserEntity;
     private boolean activeReserved;
 
     private Date startDateReserved;
@@ -27,12 +29,20 @@ public class DTOReserved {
                 .codeReserved(reserved.getCodeReserved())
                 .quantityReserved(reserved.getQuantityReserved())
                 .idProduct(reserved.getProduct().getIdProduct())
-                .idUserEntity(reserved.getUserEntity().getIdUser())
+                .emailUserEntity(reserved.getUserEntity().getEmailUser())
                 .startDateReserved(reserved.getStartDate())
                 .expirationDateReserved(reserved.getExpirationDate())
                 .build();
     }
 
+    public List<DTOReserved> parseDTOOrderList(List<Reserved> list) {
+        
+        List<DTOReserved> reservedList = new ArrayList<>();
+        for (Reserved reserved : list) {
+            reservedList.add(parseDTOOrder(reserved));
+        }
+        return reservedList;
+    }
 }
 
 

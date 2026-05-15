@@ -3,7 +3,6 @@ package com.MyMDentis.MyMDentistComerce.Service;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
-import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
 import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
 import com.MyMDentis.MyMDentistComerce.Exception.NullValuesEntityException;
@@ -12,9 +11,8 @@ import com.MyMDentis.MyMDentistComerce.Model.Product;
 import com.MyMDentis.MyMDentistComerce.Repository.DepartmentRepository;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Verification.Entities;
+import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
 import com.MyMDentis.MyMDentistComerce.Verification.ProductVerification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,9 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -32,105 +30,57 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
+    private ProductVerification productVerification;
+    @Autowired
     private DepartmentRepository departmentRepository;
 
     private final int PAGE_SIZE = 20;
 
-    private final DTOProductAdmin dtoProductAdmin = new DTOProductAdmin();
-    private final DTOProductClient dtoProductClient = new DTOProductClient();
-    private final ProductVerification productVerification = new ProductVerification();
 
-
-    private static  final Logger log = LoggerFactory.getLogger(ProductService.class);
-
-    @Transactional
-    public DTOProductClient getClientProductById(Long idProduct) {
-        return dtoProductClient.parseDTOProductClient(productRepository.findById(idProduct)
-                .orElseThrow(() ->
-                new NotFoundEntityException
-                        (ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)));
-    }
-
-    @Transactional
-    public List<DTOProductAdmin> getAllAdminProducts(){
-
-        List<Product> products = productRepository.findAll();
-        List<DTOProductAdmin> dtoProductAdmins = new ArrayList<>();
-        for (Product product : products){
-            dtoProductAdmins.add(dtoProductAdmin.parseDTOProductAdmin(product));
-        }
-
-        return dtoProductAdmins;
-    }
-
-    @Transactional
-    public List<DTOProductClient> getAllClientProducts(){
-
-
-
-        List<Product> products = productRepository.findAll();
-        List<DTOProductClient> dtoProductsClient = new ArrayList<>();
-        for (Product product : products){
-            dtoProductsClient.add(dtoProductClient.parseDTOProductClient(product));
-        }
-        return dtoProductsClient;
-
-    }
-
-    @Transactional
-    public List<DTOProductAdmin> getProductsAdminByPage(int index){
-        if (index < 1) {
-            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
-        }
-
-        List<DTOProductAdmin> products = new ArrayList<>();
-
-        //Spring use 0-based index and 20 is the pageSize
-        Pageable pageable = PageRequest.of(index-1, PAGE_SIZE);
+    @Transactional(readOnly = true)
+    public List<DTOProductAdmin> getProductsAdminByPage(int pageIndex) {
+        Pageable pageable = PageRequest.of(pageIndex, 10);
         Page<Product> productPage = productRepository.findAll(pageable);
-
-        for (Product product : productPage){
-            products.add(dtoProductAdmin.parseDTOProductAdmin(product));
-
-        }
-
-        return products;
+        return productPage.getContent().stream()
+                .map(product -> new DTOProductAdmin().parseDTOProductAdmin(product))
+                .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<DTOProductClient> getProductsClientByPage(int pageIndex) {
-        if (pageIndex < 1) {
-            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
-        }
-
-        List<DTOProductClient> products = new ArrayList<>();
-
-        Pageable pageable = PageRequest.of(pageIndex-1, PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageIndex, 10);
         Page<Product> productPage = productRepository.findAll(pageable);
-
-        for (Product product : productPage){
-            products.add(dtoProductClient.parseDTOProductClient(product));
-        }
-        return products;
+        return productPage.getContent().stream()
+                .map(product -> new DTOProductClient().parseDTOProductClient(product))
+                .collect(Collectors.toList());
     }
 
-    @Transactional
-    public List<DTOProductClient> getFilterClientProductsByPage(String filter, int indexPage){
-        if (indexPage < 1) {
-            throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE, "Indice de pagina", "El indice de pagina debe ser mayor a 0");
-        }
-        
-        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow( () ->
-                new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE));
+    @Transactional(readOnly = true)
+    public DTOProductClient getClientProductById(Long idProduct) {
+        Product product = productRepository.findById(idProduct).orElseThrow(() -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE));
+        return new DTOProductClient().parseDTOProductClient(product);
+    }
 
-        List<DTOProductClient> products = new ArrayList<>();
-        Pageable pageable = PageRequest.of(indexPage -1, PAGE_SIZE);
-        Page<Product> productPage = productRepository.findByDepartment(department, pageable);
+    @Transactional(readOnly = true)
+    public List<DTOProductAdmin> filterAdminProducts(String filter) {
+        List<Product> products = productRepository.findByDepartment(departmentRepository.findByNameDepartment(filter).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
+        ));
+        return products.stream()
+                .map(product -> new DTOProductAdmin().parseDTOProductAdmin(product))
+                .collect(Collectors.toList());
+    }
 
-        for (Product product : productPage){
-            products.add(dtoProductClient.parseDTOProductClient(product));
-        }
-        return products;
+    @Transactional(readOnly = true)
+    public List<DTOProductClient> getFilterClientProductsByPage(String filter, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Product> productsPage = productRepository.findByDepartment(departmentRepository.findByNameDepartment(filter)
+                .orElseThrow(() ->
+                        new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)), pageable);
+
+        return productsPage.getContent().stream()
+                .map(product -> new DTOProductClient().parseDTOProductClient(product))
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -196,6 +146,7 @@ public class ProductService {
                 .priceProduct(dtoProductAdmin.getPriceProduct())
                 .costPriceProduct(dtoProductAdmin.getCostPriceProduct())
                 .department(department)
+                .productImageUrl(dtoProductAdmin.getProductImageUrl())
                 .build();
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(newProduct));
@@ -204,9 +155,14 @@ public class ProductService {
 
     @Transactional
     public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
+        // Find existing product by name
+        Product existingProduct = productRepository.findByProductName(productName)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
+                        Entities.PRODUCT,
+                        ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE));
 
+        // Verifications
         String exception = productVerification.nullVerification(dtoProductAdmin);
-
         if (exception != null){
             throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE,
                     exception,
@@ -214,7 +170,6 @@ public class ProductService {
         }
 
         exception = productVerification.validValues(dtoProductAdmin);
-
         if (exception != null){
             throw new InvalidValuesEntityException(ExceptionValues.INVALID_VALUES_EXCEPTION_CODE,
                     exception,
@@ -236,19 +191,15 @@ public class ProductService {
                     ExceptionValues.INVALID_STOCK_PRODUCT_EXCEPTION_MESSAGE);
         }
 
-        Product productToEdit = productRepository.findByProductName(productName).orElseThrow(
-                () -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)
-        );
-
-        Optional<Product> existingCodeProduct = productRepository.findByCodeProduct(dtoProductAdmin.getCodeProduct());
-        if (existingCodeProduct.isPresent() && !existingCodeProduct.get().getIdProduct().equals(productToEdit.getIdProduct())) {
+        // Only check code existence if the code has changed
+        if (!existingProduct.getCodeProduct().equals(dtoProductAdmin.getCodeProduct()) && existCode(dtoProductAdmin.getCodeProduct())){
             throw new InvalidValuesEntityException(ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_CODE,
                     "Codigo del producto",
                     ExceptionValues.CODE_PRODUCT_ALREADY_EXIST_MESSAGE);
         }
-
-        Optional<Product> existingNameProduct = productRepository.findByProductName(dtoProductAdmin.getProductName());
-        if (existingNameProduct.isPresent() && !existingNameProduct.get().getIdProduct().equals(productToEdit.getIdProduct())) {
+        
+        // Only check name existence if the name has changed
+        if (!existingProduct.getProductName().equals(dtoProductAdmin.getProductName()) && existProductName(dtoProductAdmin.getProductName())){
             throw new InvalidValuesEntityException(ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_CODE,
                     "Nombre del producto",
                     ExceptionValues.NAME_PRODUCT_ALREADY_EXIST_MESSAGE);
@@ -265,88 +216,21 @@ public class ProductService {
                         Entities.DEPARTMENT,
                         ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE));
 
-        productToEdit.setProductName(dtoProductAdmin.getProductName());
-        productToEdit.setCodeProduct(dtoProductAdmin.getCodeProduct());
-        productToEdit.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct());
-        productToEdit.setPriceProduct(dtoProductAdmin.getPriceProduct());
-        productToEdit.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
-        productToEdit.setStockProduct(dtoProductAdmin.getStockProduct());
-        productToEdit.setCriticProduct(dtoProductAdmin.getCriticProduct());
-        productToEdit.setDepartment(department);
+        // Update fields
+        existingProduct.setCodeProduct(dtoProductAdmin.getCodeProduct().trim());
+        existingProduct.setProductName(dtoProductAdmin.getProductName().trim());
+        existingProduct.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null);
+        existingProduct.setStockProduct(dtoProductAdmin.getStockProduct());
+        existingProduct.setCriticProduct(dtoProductAdmin.getCriticProduct());
+        existingProduct.setPriceProduct(dtoProductAdmin.getPriceProduct());
+        existingProduct.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
+        existingProduct.setDepartment(department);
+        existingProduct.setProductImageUrl(dtoProductAdmin.getProductImageUrl());
 
-        return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(productToEdit));
-
-    }
-
-    @Transactional
-    public void deleteProduct(String productName) {
-        if (productName == null || productName.trim().isEmpty()){
-            throw new NullValuesEntityException(ExceptionValues.NULL_VALUES_EXCEPTION_CODE, "Nombre del producto", ExceptionValues.NULL_VALUES_EXCEPTION_MESSAGE);
-        }
-
-        Product product = productRepository.findByProductName(productName).orElseThrow(
-                () -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)
-        );
-        productRepository.deleteByProductName(productName);
-    }
-
-    @Transactional
-    public List<DTOProductAdmin> filterAdminProducts(String filter) {
-        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow(
-                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
-        );
-
-        List<Product> products = productRepository.findByDepartment(department);
-        List<DTOProductAdmin> dtoProductAdmins = new ArrayList<>();
-
-        for (Product product : products){
-            dtoProductAdmins.add(dtoProductAdmin.parseDTOProductAdmin(product));
-        }
-        return dtoProductAdmins;
-
-    }
-
-    @Transactional
-    public List<DTOProductClient> filterClientProducts(String filter) {
-        Department department = departmentRepository.findByNameDepartment(filter).orElseThrow(
-                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
-        );
-
-        List<Product> products = productRepository.findByDepartment(department);
-        List<DTOProductClient> dtoProductClients = new ArrayList<>();
-
-        for (Product product : products){
-            dtoProductClients.add(dtoProductClient.parseDTOProductClient(product));
-        }
-        return dtoProductClients;
-
+        return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(existingProduct));
     }
 
 
-
-    ////////////////////////////////////////////////verifications///////////////////////////////////////
-    @Transactional
-    public boolean existCode(String productCode){
-        Product product = productRepository.findByCodeProduct(productCode).orElse(null);
-        return product != null;
-    }
-
-    @Transactional
-    public boolean existProductName(String productName){
-        Product product = productRepository.findByProductName(productName).orElse(null);
-        return product != null;
-    }
-
-    @Transactional
-    public Optional<Department> existDepartment(String departmentName){
-        return departmentRepository.findByNameDepartment(departmentName);
-    }
-
-
-
-
-
-    /////////////////////UTILS//////////////////////////////
     @Transactional
     public DTOUtilsProducts getMaxPages(){
         long total = productRepository.count();
@@ -368,6 +252,15 @@ public class ProductService {
                 .build();
     }
 
+    private boolean existCode(String codeProduct) {
+        return productRepository.findByCodeProduct(codeProduct).isPresent();
+    }
 
+    private boolean existProductName(String productName) {
+        return productRepository.findByProductName(productName).isPresent();
+    }
 
+    private Optional<Department> existDepartment(String nameDepartment) {
+        return departmentRepository.findByNameDepartment(nameDepartment);
+    }
 }
