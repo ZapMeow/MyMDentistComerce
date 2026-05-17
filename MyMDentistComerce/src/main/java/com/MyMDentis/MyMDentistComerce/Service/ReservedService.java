@@ -2,6 +2,7 @@ package com.MyMDentis.MyMDentistComerce.Service;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOReserved;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOReservedPetition;
+import com.MyMDentis.MyMDentistComerce.DTO.DTOUserEntity;
 import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
 import com.MyMDentis.MyMDentistComerce.Exception.InvalidValuesEntityException;
 import com.MyMDentis.MyMDentistComerce.Exception.NotFoundEntityException;
@@ -68,6 +69,19 @@ public class ReservedService {
 
     public List<DTOReserved> findNoActivesOrders(){
         return dtoReserved.parseDTOOrderList(reservedRepository.findByActiveReserved(false));
+    }
+
+    @Transactional
+    public boolean checkReserved(Long idReserved) {
+
+        Reserved reserved = reservedRepository.findById(idReserved)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        reserved.setActiveReserved(false);
+
+        reservedRepository.save(reserved);
+
+        return true;
     }
 
     @Transactional

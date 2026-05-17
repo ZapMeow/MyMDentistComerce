@@ -2,6 +2,7 @@ package com.MyMDentis.MyMDentistComerce.Controller;
 
 import com.MyMDentis.MyMDentistComerce.DTO.DTOReserved;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOReservedPetition;
+import com.MyMDentis.MyMDentistComerce.Model.Reserved;
 import com.MyMDentis.MyMDentistComerce.Service.ReservedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,14 @@ public class ReservedController {
     @GetMapping("/getReservedByUser/{idUserEntity}")
     public ResponseEntity<List<DTOReserved>> getAllReservedByUserEntity(@PathVariable Long idUserEntity){
         return ResponseEntity.ok(reservedService.findByUser(idUserEntity));
+
+    }
+    @PutMapping("/checkReserved/{idReserved}")
+    public ResponseEntity<Boolean> disableReserved(@PathVariable Long idReserved){
+
+        return ResponseEntity.ok(
+                reservedService.checkReserved(idReserved)
+        );
     }
 
     @PostMapping("/saveNewReserved")

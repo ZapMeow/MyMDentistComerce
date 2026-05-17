@@ -17,6 +17,8 @@ public class DTOReserved {
     private String codeReserved;
     private Long quantityReserved;
     private Long idProduct;
+    private String productName;
+    private Long priceProduct;
     private String emailUserEntity;
     private boolean activeReserved;
 
@@ -29,7 +31,10 @@ public class DTOReserved {
                 .codeReserved(reserved.getCodeReserved())
                 .quantityReserved(reserved.getQuantityReserved())
                 .idProduct(reserved.getProduct().getIdProduct())
+                .productName(reserved.getProduct().getProductName())
+                .priceProduct(reserved.getProduct().getPriceProduct())
                 .emailUserEntity(reserved.getUserEntity().getEmailUser())
+                .activeReserved(reserved.isActiveReserved())
                 .startDateReserved(reserved.getStartDate())
                 .expirationDateReserved(reserved.getExpirationDate())
                 .build();

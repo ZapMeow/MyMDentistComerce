@@ -47,7 +47,11 @@ public class SecurityConfig {
                         sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         //----------------- SESIÓN Y REGISTRO -----------------
-                        .requestMatchers("/MyMDentalCommerce/session/**").permitAll()
+                        .requestMatchers("/MyMDentalCommerce/session/**"
+                                ,"/MyMDentalCommerce/users/findbyemail/**"
+                                , "/MyMDentalCommerce/users/updatePerfil/**"
+                        )
+                        .permitAll()
 
                         //----------------- PRODUCTOS (PÚBLICOS) -----------------
                         .requestMatchers(
@@ -59,6 +63,7 @@ public class SecurityConfig {
                                 "/MyMDentalCommerce/products/getProduct/**",
                                 "/MyMDentalCommerce/products/getMaxProductPages",
                                 "/MyMDentalCommerce/products/getMaxProductPagesByDepartment/**"
+
                         ).permitAll()
 
                         //----------------- PRODUCTOS (TRABAJADOR Y ADMIN) -----------------
@@ -89,9 +94,10 @@ public class SecurityConfig {
                                 "/MyMDentalCommerce/Reserved/getActiveReserved",
                                 "/MyMDentalCommerce/Reserved/getNoActiveReserved",
                                 "/MyMDentalCommerce/Reserved/getReservedById/**",
-                                "/MyMDentalCommerce/Reserved/getReservedByUser/**"
+                                "/MyMDentalCommerce/Reserved/getReservedByUser/**",
+                                "/MyMDentalCommerce/Reserved/checkReserved/**"
                         ).hasAnyAuthority(Roles.ADMINISTRATOR.name(), Roles.WORKER.name())
-                        .requestMatchers("/MyMDentalCommerce/Reserved/saveNewReserved")
+                        .requestMatchers("/MyMDentalCommerce/Reserved/saveNewReserved", "/MyMDentalCommerce/Reserved/checkReserved/**")
                         .authenticated()
                         .anyRequest().denyAll()
                 ).build();

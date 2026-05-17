@@ -163,6 +163,25 @@ public class UserEntityService {
         return user.isPresent();
     }
 
+
+    public DTOUserEntity updateUserEntity(String email, DTOUserEntity dtoUserEntity) {
+        UserEntity userExistente = userEntityRepository.findByEmailUser(email)
+                .orElseThrow(() -> new RuntimeException("Error: Usuario con email " + email + " no encontrado."));
+
+        userExistente.setNameUser(dtoUserEntity.getNameUser());
+        userExistente.setCellphoneUser(dtoUserEntity.getCellphoneUser());
+        userExistente.setSurnameUser(dtoUserEntity.getSurnameUser());
+
+        UserEntity saved = userEntityRepository.save(userExistente);
+
+        DTOUserEntity response = new DTOUserEntity();
+        response.setNameUser(saved.getNameUser());
+        response.setSurnameUser(saved.getSurnameUser());
+        response.setCellphoneUser(saved.getCellphoneUser());
+        return response;
+    }
+
+
     @Transactional
     public DTOUserEntity updateUser(String emailUser, DTOUserEntity dtoUserEntity, boolean withPassword) {
 
@@ -252,5 +271,20 @@ public class UserEntityService {
         Optional<UserEntity> user = userEntityRepository.findByNameUserAndSurnameUser(nameUser, surnameUser);
         return user.isPresent();
     }
+
+    @Transactional
+    public DTOUserEntity findByemailUser(String email) {
+
+        UserEntity user = userEntityRepository.findByEmailUser(email)
+                .orElseThrow(() -> new RuntimeException("USUARIO NO ENCONTRADO"));
+
+        DTOUserEntity dtouser = new DTOUserEntity();
+        dtouser.setNameUser(user.getNameUser());
+        dtouser.setSurnameUser(user.getSurnameUser());
+        dtouser.setEmailUser(user.getEmailUser());
+        dtouser.setCellphoneUser(user.getCellphoneUser());
+        return dtouser;
+    }
+
 
 }
