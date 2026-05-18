@@ -5,13 +5,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      AWS_BUCKET_NAME:
 
 
 
 
-      DB_USER:
-      DB_PASS:
+
+
       LOCAL_PATH: http://localhost:5173
       CLOUDFRONT_PATH: https://dqu1zpx4zovo4.cloudfront.net
       S3_BUCKET_PAGE: arn:aws:s3:::lanzamientowebdemo
