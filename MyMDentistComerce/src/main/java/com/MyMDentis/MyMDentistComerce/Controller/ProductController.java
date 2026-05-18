@@ -3,18 +3,17 @@ import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
-import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/MyMDentalCommerce/products")
@@ -22,8 +21,7 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
-    @Autowired
-    private ProductRepository productRepository;
+
 
     @GetMapping(path = "/getClientProductById/{idProduct}")
     public ResponseEntity<DTOProductClient> getClientProductById(@PathVariable Long idProduct) throws InterruptedException {
@@ -65,6 +63,8 @@ public class ProductController {
         return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
     }
 
+
+
     @PutMapping(path = "/editProduct/{productName}")
     public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
         Thread.sleep(2000L);
@@ -87,5 +87,16 @@ public class ProductController {
     @GetMapping(path = "/getMaxProductPagesByDepartment/{nameDepartment}")
     public ResponseEntity<DTOUtilsProducts> getMaxProductPagesByDepartment(@PathVariable String nameDepartment){
         return ResponseEntity.ok(productService.getMaxPagesByDepartmentFilter(nameDepartment));
+    }
+
+
+
+    @PostMapping(path = "/saveProduct2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> uploadFile(
+            @RequestPart("product") DTOProductAdmin product,
+            @RequestPart("image") MultipartFile image) throws IOException{
+
+        return ResponseEntity.ok(productService.uploadFile(product, image));
+
     }
 }

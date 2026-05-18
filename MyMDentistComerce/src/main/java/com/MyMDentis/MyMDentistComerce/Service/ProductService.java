@@ -14,28 +14,64 @@ import com.MyMDentis.MyMDentistComerce.Verification.Entities;
 import com.MyMDentis.MyMDentistComerce.Exception.ExceptionValues;
 import com.MyMDentis.MyMDentistComerce.Verification.ProductVerification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private ProductVerification productVerification;
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final ProductRepository productRepository;
+    private final ProductVerification productVerification;
+    private final DepartmentRepository departmentRepository;
+    private final S3Client s3Client;
+
+    @Value("${aws.s3.bucket.name}")
+    private String bucketName;
 
     private final int PAGE_SIZE = 20;
 
+    @Autowired
+    public ProductService(
+            ProductRepository productRepository,
+            ProductVerification productVerification,
+            DepartmentRepository departmentRepository,
+            @Value("${aws.accessKeyId}") String accessKey,
+            @Value("${aws.secretKey}") String secretKey,
+            @Value("${aws.sessionToken}") String sessionToken) {
+
+        this.productRepository = productRepository;
+        this.productVerification = productVerification;
+        this.departmentRepository = departmentRepository;
+
+        // Creamos las credenciales temporales incluyendo el Session Token
+        AwsSessionCredentials credentials = AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+
+        // Construimos el cliente obligándolo a usar estas credenciales
+        this.s3Client = S3Client.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .build();
+    }
 
     @Transactional(readOnly = true)
     public List<DTOProductAdmin> getProductsAdminByPage(int pageIndex) {
@@ -146,7 +182,6 @@ public class ProductService {
                 .priceProduct(dtoProductAdmin.getPriceProduct())
                 .costPriceProduct(dtoProductAdmin.getCostPriceProduct())
                 .department(department)
-                .productImageUrl(dtoProductAdmin.getProductImageUrl())
                 .build();
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(newProduct));
@@ -225,7 +260,7 @@ public class ProductService {
         existingProduct.setPriceProduct(dtoProductAdmin.getPriceProduct());
         existingProduct.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
         existingProduct.setDepartment(department);
-        existingProduct.setProductImageUrl(dtoProductAdmin.getProductImageUrl());
+        existingProduct.setUrlProduct(dtoProductAdmin.getUrlProduct());
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(existingProduct));
     }
@@ -262,5 +297,50 @@ public class ProductService {
 
     private Optional<Department> existDepartment(String nameDepartment) {
         return departmentRepository.findByNameDepartment(nameDepartment);
+    }
+
+
+
+
+
+
+    @Transactional
+    public Product uploadFile(DTOProductAdmin dtoProductAdmin, MultipartFile file) throws IOException {
+
+        Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment()).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE, Entities.DEPARTMENT, ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE)
+        );
+        Product newProduct = Product.builder()
+                .codeProduct(dtoProductAdmin.getCodeProduct().trim())
+                .productName(dtoProductAdmin.getProductName().trim())
+                .descriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null)
+                .stockProduct(dtoProductAdmin.getStockProduct())
+                .criticProduct(dtoProductAdmin.getCriticProduct())
+                .priceProduct(dtoProductAdmin.getPriceProduct())
+                .costPriceProduct(dtoProductAdmin.getCostPriceProduct())
+                .department(department)
+                .build();
+
+        String fileName = file.getOriginalFilename();
+        String extension = "";
+        if (fileName != null && fileName.contains(".")) {
+            extension = fileName.substring(fileName.lastIndexOf("."));
+        }
+
+        String encryptedFileName = UUID.randomUUID().toString() + extension;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(encryptedFileName)
+                .contentType(file.getContentType())
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        String link = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, "us-east-1", encryptedFileName);
+
+        newProduct.setUrlProduct(link);
+        productRepository.save(newProduct);
+
+        return newProduct;
     }
 }

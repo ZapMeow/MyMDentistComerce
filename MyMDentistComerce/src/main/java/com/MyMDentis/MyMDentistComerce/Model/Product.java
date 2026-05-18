@@ -22,8 +22,8 @@ public class Product {
     private String productName;
     @Column(name = "description_product", length = 300, unique = false, nullable = true)
     private String descriptionProduct;
-    @Column(name = "product_image_url", length = 512, unique = false, nullable = true)
-    private String productImageUrl;
+    @Column(name = "url_product", length = 300, unique = false, nullable = false)
+    private String urlProduct;
 
     //Stock info
 

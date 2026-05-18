@@ -4,10 +4,12 @@ import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
 @NoArgsConstructor
+@Component
 public class ProductVerification {
 
     private final String PRODUCT_NAME = "Nombre del producto";
