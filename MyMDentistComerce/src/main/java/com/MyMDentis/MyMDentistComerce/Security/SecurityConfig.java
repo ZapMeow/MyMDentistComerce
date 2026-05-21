@@ -29,12 +29,12 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    //@Value("${spring.cors.origins.test}")
-    private String testPath = "http://localhost:5173";
-    //@Value("${spring.cors.origins.cloudfront}")
-    private String cloudfrontPath = "https://dqu1zpx4zovo4.cloudfront.net";
-    //@Value("${spring.cors.origins.s3Bucket}")
-    private String s3BucketPath = "arn:aws:s3:::lanzamientowebdemo";
+    @Value("${spring.cors.origins.test}")
+    private String testPath;
+    @Value("${spring.cors.origins.cloudfront}")
+    private String cloudfrontPath;
+    @Value("${spring.cors.origins.s3Bucket}")
+    private String s3BucketPath;
 
 
     private final JwtAuthFilter jwtAuthFilter;

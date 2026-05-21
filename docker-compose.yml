@@ -1,34 +1,17 @@
 services:
   app_mym_dental:
     build: MyMDentistComerce
-    mem_limit: 512m
     ports:
       - "8080:8080"
     environment:
-      AWS_BUCKET_NAME: s3-bucket-test-spring
-      PUBLIC_KEY: ASIAXEV7N7NMTRBE7OLO
-      SECRET_KEY: oll0vF8DrnvZB/5ESYzTGFuePhsXL2gHBkQByM5W
-      TOKEN_KEY: IQoJb3JpZ2luX2VjEP3//////////wEaCXVzLXdlc3QtMiJHMEUCIQCouIMRb1tkeW1KTqg3SejQTePi2jCt6vY0omMzirverwIgdFTdb/QhbryjsGg3B7/LpFO8ZAZwLE2dRzsuMTWcL8UqrwIIxv//////////ARABGgw0OTExMDE0ODU5MTMiDCdIZOKjfBCmEnrwaiqDAo9Ig/pH1hHsbcPxtq9sxkLhuXY2L5WmVBQYZDnjMLs6zf/VbD44+N+so1ClbWQs6J52GBRZ8vS9sAmoyDAKJBwnc1G8XglDQ+W/THNOk4x3kEWvrbtaSSoYBUhPOOGXB2RYfuKL5SrpQoLHci1YkJmlxUInFgVeO01P3u/SpUQjPmAdxx4kM2ctnQsonETg6GSCDtIpLPMztoWsRSE7kEcUgr2ry6bfFl6/jaZFbhh6OS/K28EOLv23wQ7jSkmErULXu1HCQIJQsTAGSdOmHyu5dLr6J3kCxt2pP76QaqaCu+DBLmye3u0CfgMxp8SMJL1QQBIXwIs805odTiIHbmv1JLMw9+qt0AY6nQF7FPOMXGRHPDoOOfpUoFHfxidpACeFb/nxjykwJqItRljLWvwTA4L4n5KNA00+LrGOilg7zfXn0VysF86MuP0inytvGb8RqFQ2ZtcgcfLb8isUjvIicmIAMj+dz0WBCK7LAz14bdKKJaIAFJpfGcpaAO7jN5nOMNpRQNu43zwdIR9HHgJq09cMbQYx3t06gl5PS7f7iyBIVIgl0D+X
-      DB_PATH: jdbc:mysql://mym_dental:3306/mymdentistcomerce?createDatabaseIfNotExist=true&serverTimezone=UTC
-      DB_USER: root
-      DB_PASS: "1234"
-      LOCAL_PATH: http://localhost:5173
-      CLOUDFRONT_PATH: https://dqu1zpx4zovo4.cloudfront.net
-      S3_BUCKET_PAGE: arn:aws:s3:::lanzamientowebdemo
+      AWS_BUCKET_NAME: name
+      PUBLIC_KEY: a
+      SECRET_KEY: b
+      TOKEN_KEY: c
+      DB_PATH: d
+      DB_USER: e
+      DB_PASS: f
+      LOCAL_PATH: g
+      CLOUDFRONT_PATH: h
+      S3_BUCKET_PAGE: i
     restart: always
-    depends_on:
-      mym_dental:
-        condition: service_healthy
-  mym_dental:
-    image: mysql:8.0.33
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_PASSWORD: 1234
-      MYSQL_DATABASE: mym_dental_commerce
-    restart: always
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 10s
-      retries: 10
