@@ -63,10 +63,8 @@ public class ProductService {
         this.productVerification = productVerification;
         this.departmentRepository = departmentRepository;
 
-        // Creamos las credenciales temporales incluyendo el Session Token
         AwsSessionCredentials credentials = AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
 
-        // Construimos el cliente obligándolo a usar estas credenciales
         this.s3Client = S3Client.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
@@ -182,6 +180,8 @@ public class ProductService {
                 .priceProduct(dtoProductAdmin.getPriceProduct())
                 .costPriceProduct(dtoProductAdmin.getCostPriceProduct())
                 .department(department)
+                .urlProduct(dtoProductAdmin.getUrlProduct())
+                .activeProduct(true)
                 .build();
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(newProduct));

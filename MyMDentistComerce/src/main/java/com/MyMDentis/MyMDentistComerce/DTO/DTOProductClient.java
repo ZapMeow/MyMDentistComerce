@@ -17,6 +17,7 @@ public class DTOProductClient {
     private Long priceProduct;
     private String nameDepartment;
     private String urlProduct;
+    private boolean activeProduct;
 
     public DTOProductClient parseDTOProductClient(Product product){
         return DTOProductClient.builder()
@@ -28,6 +29,7 @@ public class DTOProductClient {
                 .priceProduct(product.getPriceProduct())
                 .nameDepartment(product.getDepartment().getNameDepartment())
                 .urlProduct(product.getUrlProduct())
+                .activeProduct(product.isActiveProduct())
                 .build();
     }
 }

@@ -56,7 +56,7 @@ public class ProductController {
     @PostMapping(path = "/saveProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DTOProductAdmin> saveNewProduct(
             @RequestPart("product") DTOProductAdmin dtoProductAdmin,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) throws InterruptedException{
+            @RequestPart(value = "image", required = true) MultipartFile imageFile) throws InterruptedException{
         
         Thread.sleep(2000L);
         
@@ -87,16 +87,5 @@ public class ProductController {
     @GetMapping(path = "/getMaxProductPagesByDepartment/{nameDepartment}")
     public ResponseEntity<DTOUtilsProducts> getMaxProductPagesByDepartment(@PathVariable String nameDepartment){
         return ResponseEntity.ok(productService.getMaxPagesByDepartmentFilter(nameDepartment));
-    }
-
-
-
-    @PostMapping(path = "/saveProduct2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Product> uploadFile(
-            @RequestPart("product") DTOProductAdmin product,
-            @RequestPart("image") MultipartFile image) throws IOException{
-
-        return ResponseEntity.ok(productService.uploadFile(product, image));
-
     }
 }

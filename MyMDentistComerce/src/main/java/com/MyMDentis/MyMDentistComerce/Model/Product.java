@@ -39,6 +39,10 @@ public class Product {
     @Column(name = "cost_price_product", length = 10, unique = false, nullable = false)
     private Long costPriceProduct;
 
+
+    @Column(name = "active_product", unique = false, nullable = false)
+    private boolean activeProduct;
+
     //Foreign keys
 
     @ManyToOne(targetEntity = Department.class)
