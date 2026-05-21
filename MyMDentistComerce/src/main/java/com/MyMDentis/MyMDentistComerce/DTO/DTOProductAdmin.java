@@ -17,7 +17,8 @@ public class DTOProductAdmin {
     private Long priceProduct;
     private Long costPriceProduct;
     private String nameDepartment;
-    private String productImageUrl;
+    private String urlProduct;
+    private boolean activeProduct;
 
 
 
@@ -31,7 +32,8 @@ public class DTOProductAdmin {
                 .priceProduct(product.getPriceProduct())
                 .costPriceProduct(product.getCostPriceProduct())
                 .nameDepartment(product.getDepartment().getNameDepartment())
-                .productImageUrl(product.getProductImageUrl())
+                .urlProduct(product.getUrlProduct())
+                .activeProduct(product.isActiveProduct())
                 .build();
     }
 

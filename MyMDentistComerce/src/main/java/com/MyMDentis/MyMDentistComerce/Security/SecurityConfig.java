@@ -2,6 +2,8 @@ package com.MyMDentis.MyMDentistComerce.Security;
 
 import com.MyMDentis.MyMDentistComerce.Model.Roles;
 import com.MyMDentis.MyMDentistComerce.Service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,9 +29,18 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    //@Value("${spring.cors.origins.test}")
+    private String testPath = "http://localhost:5173";
+    //@Value("${spring.cors.origins.cloudfront}")
+    private String cloudfrontPath = "https://dqu1zpx4zovo4.cloudfront.net";
+    //@Value("${spring.cors.origins.s3Bucket}")
+    private String s3BucketPath = "arn:aws:s3:::lanzamientowebdemo";
+
+
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, CustomUserDetailsService customUserDetailsService){
         this.jwtAuthFilter = jwtAuthFilter;
         this.customUserDetailsService = customUserDetailsService;
@@ -55,6 +66,7 @@ public class SecurityConfig {
 
                         //----------------- PRODUCTOS (PÚBLICOS) -----------------
                         .requestMatchers(
+                                "/MyMDentalCommerce/products/saveProduct2",
                                 "/MyMDentalCommerce/products/clientProducts",
                                 "/MyMDentalCommerce/products/clientProducts/page/**",
                                 "/MyMDentalCommerce/products/getClientProductById/**",
@@ -88,6 +100,8 @@ public class SecurityConfig {
                         //----------------- DEPARTAMENTOS -----------------
                         .requestMatchers("/MyMDentalCommerce/departments/getDepartments").permitAll()
 
+                        //-------vvvvvvvv DEBUG vvvvvvv--------------
+                        .requestMatchers("/MyMDentalCommerce/departments/createDepartment").permitAll()
                         //----------------- RESERVAS -----------------
                         .requestMatchers(
                                 "/MyMDentalCommerce/Reserved/getAllReserved",
@@ -107,7 +121,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of(testPath, cloudfrontPath, s3BucketPath));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));

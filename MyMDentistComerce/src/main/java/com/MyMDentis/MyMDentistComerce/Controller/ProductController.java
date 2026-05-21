@@ -3,18 +3,17 @@ import com.MyMDentis.MyMDentistComerce.DTO.DTOProductAdmin;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOProductClient;
 import com.MyMDentis.MyMDentistComerce.DTO.DTOUtilsProducts;
 import com.MyMDentis.MyMDentistComerce.Model.Product;
-import com.MyMDentis.MyMDentistComerce.Repository.ProductRepository;
 import com.MyMDentis.MyMDentistComerce.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/MyMDentalCommerce/products")
@@ -22,8 +21,7 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
-    @Autowired
-    private ProductRepository productRepository;
+
 
     @GetMapping(path = "/getClientProductById/{idProduct}")
     public ResponseEntity<DTOProductClient> getClientProductById(@PathVariable Long idProduct) throws InterruptedException {
@@ -58,12 +56,14 @@ public class ProductController {
     @PostMapping(path = "/saveProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DTOProductAdmin> saveNewProduct(
             @RequestPart("product") DTOProductAdmin dtoProductAdmin,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) throws InterruptedException{
+            @RequestPart(value = "image", required = true) MultipartFile imageFile) throws InterruptedException{
         
         Thread.sleep(2000L);
         
         return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
     }
+
+
 
     @PutMapping(path = "/editProduct/{productName}")
     public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
