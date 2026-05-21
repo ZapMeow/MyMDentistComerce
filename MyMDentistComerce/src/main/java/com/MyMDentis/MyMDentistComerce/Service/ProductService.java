@@ -343,4 +343,13 @@ public class ProductService {
 
         return newProduct;
     }
+
+    public void disableProduct(String productName) {
+        Product product = productRepository.findByProductName(productName).orElseThrow(
+                () -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE, Entities.PRODUCT, ExceptionValues.PRODUCT_NOT_FOUND_MESSAGE)
+        );
+        product.setActiveProduct(false);
+        productRepository.save(product);
+
+    }
 }

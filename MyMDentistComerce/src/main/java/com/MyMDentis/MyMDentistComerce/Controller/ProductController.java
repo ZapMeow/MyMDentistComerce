@@ -74,7 +74,8 @@ public class ProductController {
     @DeleteMapping(path = "/deleteProduct/{productName}")
     public ResponseEntity<String> deleteProduct(@PathVariable String productName) throws InterruptedException{
         Thread.sleep(2000L);
-        return new ResponseEntity<>("Producto eliminado", HttpStatus.ACCEPTED);
+        productService.disableProduct(productName);
+        return new ResponseEntity<>("Producto " + productName + " eliminado", HttpStatus.ACCEPTED);
     }
 
      ///////////////////////Utils endpoints//////////////////////////////

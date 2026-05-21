@@ -60,19 +60,14 @@ public class SecurityConfig {
                         //----------------- SESIÓN Y REGISTRO -----------------
                         .requestMatchers("/MyMDentalCommerce/session/**"
                                 ,"/MyMDentalCommerce/users/findbyemail/**"
-                                , "/MyMDentalCommerce/users/updatePerfil/**"
                         )
                         .permitAll()
 
                         //----------------- PRODUCTOS (PÚBLICOS) -----------------
                         .requestMatchers(
-                                "/MyMDentalCommerce/products/saveProduct2",
-                                "/MyMDentalCommerce/products/clientProducts",
                                 "/MyMDentalCommerce/products/clientProducts/page/**",
                                 "/MyMDentalCommerce/products/getClientProductById/**",
-                                "/MyMDentalCommerce/products/filterClientProducts/**",
                                 "/MyMDentalCommerce/products/filterClientProductsByPage/**",
-                                "/MyMDentalCommerce/products/getProduct/**",
                                 "/MyMDentalCommerce/products/getMaxProductPages",
                                 "/MyMDentalCommerce/products/getMaxProductPagesByDepartment/**"
 
@@ -80,7 +75,6 @@ public class SecurityConfig {
 
                         //----------------- PRODUCTOS (TRABAJADOR Y ADMIN) -----------------
                         .requestMatchers(
-                                "/MyMDentalCommerce/products/adminProducts",
                                 "/MyMDentalCommerce/products/adminProducts/page/**",
                                 "/MyMDentalCommerce/products/filterAdminProducts/**",
                                 "/MyMDentalCommerce/products/saveProduct",
@@ -94,14 +88,14 @@ public class SecurityConfig {
                         //----------------- USUARIOS -----------------
                         .requestMatchers("/MyMDentalCommerce/users/getUsers", "/MyMDentalCommerce/users/adminUpdate/**")
                         .hasAuthority(Roles.ADMINISTRATOR.name())
-                        .requestMatchers("/MyMDentalCommerce/users/update/**")
+                        .requestMatchers("/MyMDentalCommerce/users/update/**", "/MyMDentalCommerce/users/getUseremail/**", "/MyMDentalCommerce/users/updatePerfil/**")
                         .authenticated()
 
                         //----------------- DEPARTAMENTOS -----------------
                         .requestMatchers("/MyMDentalCommerce/departments/getDepartments").permitAll()
+                        .requestMatchers("/MyMDentalCommerce/departments/createDepartment")
+                        .hasAnyAuthority(Roles.ADMINISTRATOR.name(), Roles.WORKER.name())
 
-                        //-------vvvvvvvv DEBUG vvvvvvv--------------
-                        .requestMatchers("/MyMDentalCommerce/departments/createDepartment").permitAll()
                         //----------------- RESERVAS -----------------
                         .requestMatchers(
                                 "/MyMDentalCommerce/Reserved/getAllReserved",
@@ -111,7 +105,7 @@ public class SecurityConfig {
                                 "/MyMDentalCommerce/Reserved/getReservedByUser/**",
                                 "/MyMDentalCommerce/Reserved/checkReserved/**"
                         ).hasAnyAuthority(Roles.ADMINISTRATOR.name(), Roles.WORKER.name())
-                        .requestMatchers("/MyMDentalCommerce/Reserved/saveNewReserved", "/MyMDentalCommerce/Reserved/checkReserved/**")
+                        .requestMatchers("/MyMDentalCommerce/Reserved/saveNewReserved")
                         .authenticated()
                         .anyRequest().denyAll()
                 ).build();
