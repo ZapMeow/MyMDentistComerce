@@ -118,7 +118,7 @@ public class ProductService {
     }
 
     @Transactional
-    public DTOProductAdmin saveNewProduct(DTOProductAdmin dtoProductAdmin) {
+    public DTOProductAdmin saveNewProduct(DTOProductAdmin dtoProductAdmin, MultipartFile file) throws IOException {
 
         String exception = productVerification.nullVerification(dtoProductAdmin);
 
@@ -166,10 +166,33 @@ public class ProductService {
                                                     ExceptionValues.DEPARTMENT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
 
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !isSupportedImage(fileName)) {
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_IMAGE_EXTENSION_CODE,
+                    Entities.PRODUCT,
+                    ExceptionValues.INVALID_IMAGE_EXTENSION_MESSAGE);
+        }
+
         Department department = departmentRepository.findByNameDepartment(dtoProductAdmin.getNameDepartment())
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.DEPARTMENT_NOT_FOUND_CODE,
                         Entities.DEPARTMENT,
                         ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE));
+
+        String extension = "";
+        if (fileName != null && fileName.contains(".")) {
+            extension = fileName.substring(fileName.lastIndexOf("."));
+        }
+
+        String encryptedFileName = UUID.randomUUID().toString() + extension;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(encryptedFileName)
+                .contentType(file.getContentType())
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        String link = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, "us-east-1", encryptedFileName);
 
         Product newProduct = Product.builder()
                 .codeProduct(dtoProductAdmin.getCodeProduct().trim())
@@ -183,6 +206,9 @@ public class ProductService {
                 .urlProduct(dtoProductAdmin.getUrlProduct())
                 .activeProduct(true)
                 .build();
+
+        newProduct.setUrlProduct(link);
+        productRepository.save(newProduct);
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(newProduct));
 
@@ -299,10 +325,19 @@ public class ProductService {
         return departmentRepository.findByNameDepartment(nameDepartment);
     }
 
+    private boolean isSupportedImage(String fileName) {
+        if (fileName == null) {
+            return false;
+        }
+        String lowerCaseFileName = fileName.toLowerCase();
+        return lowerCaseFileName.endsWith(".png") ||
+                lowerCaseFileName.endsWith(".jpg") ||
+                lowerCaseFileName.endsWith(".jpeg") ||
+                lowerCaseFileName.endsWith(".svg");
+    }
 
 
-
-
+    
 
     @Transactional
     public Product uploadFile(DTOProductAdmin dtoProductAdmin, MultipartFile file) throws IOException {

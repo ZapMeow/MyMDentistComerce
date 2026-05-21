@@ -62,4 +62,6 @@ public interface ExceptionValues {
     String RESERVED_NOT_FOUND_CODE = "R-001";
     String RESERVED_NOT_FOUND_MESSAGE = "Reserva buscada no fue encontrado en el apartado de reservas";
 
+    String INVALID_IMAGE_EXTENSION_CODE = "P-010";
+    String INVALID_IMAGE_EXTENSION_MESSAGE = "Extension de archivo no permitido. Solo usar .jpg-.jpeg-.png-.svg";
 }

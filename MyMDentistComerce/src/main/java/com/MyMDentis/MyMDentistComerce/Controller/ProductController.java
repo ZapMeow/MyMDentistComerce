@@ -56,11 +56,11 @@ public class ProductController {
     @PostMapping(path = "/saveProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DTOProductAdmin> saveNewProduct(
             @RequestPart("product") DTOProductAdmin dtoProductAdmin,
-            @RequestPart(value = "image", required = true) MultipartFile imageFile) throws InterruptedException{
+            @RequestPart(value = "image", required = true) MultipartFile imageFile) throws InterruptedException, IOException {
         
         Thread.sleep(2000L);
         
-        return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin));
+        return ResponseEntity.ok(productService.saveNewProduct(dtoProductAdmin,imageFile));
     }
 
 
