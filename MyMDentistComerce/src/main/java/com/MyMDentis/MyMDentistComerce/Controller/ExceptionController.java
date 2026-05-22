@@ -51,14 +51,4 @@ public class ExceptionController {
         return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<DTOInvalidValuesException> globalExceptionHandler(){
-        DTOInvalidValuesException exception = DTOInvalidValuesException.builder()
-                .code("No code")
-                .attribute("No atributte")
-                .message("Excepcion internal del servidor")
-                .build();
-        return new ResponseEntity<>(exception, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
 }
