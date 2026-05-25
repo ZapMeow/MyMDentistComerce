@@ -57,6 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         for (String noFilterPath : noFilterPaths){
             if (path.startsWith(noFilterPath)){
                 filterChain.doFilter(request, response);
+                log.info("no filtering request to: " + path);
                 return;
             }
         }
