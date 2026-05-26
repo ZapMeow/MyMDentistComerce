@@ -215,7 +215,7 @@ public class ProductService {
     }
 
     @Transactional
-    public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin) {
+    public DTOProductAdmin editProduct(String productName, DTOProductAdmin dtoProductAdmin, MultipartFile file) throws IOException {
         // Find existing product by name
         Product existingProduct = productRepository.findByProductName(productName)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionValues.PRODUCT_NOT_FOUND_CODE,
@@ -277,16 +277,40 @@ public class ProductService {
                         Entities.DEPARTMENT,
                         ExceptionValues.DEPARTMENT_NOT_FOUND_MESSAGE));
 
-        // Update fields
-        existingProduct.setCodeProduct(dtoProductAdmin.getCodeProduct().trim());
-        existingProduct.setProductName(dtoProductAdmin.getProductName().trim());
-        existingProduct.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct().trim() : null);
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !isSupportedImage(fileName)) {
+            throw new InvalidValuesEntityException(ExceptionValues.INVALID_IMAGE_EXTENSION_CODE,
+                    Entities.PRODUCT,
+                    ExceptionValues.INVALID_IMAGE_EXTENSION_MESSAGE);
+        }
+
+        String extension = "";
+        if (fileName != null && fileName.contains(".")) {
+            extension = fileName.substring(fileName.lastIndexOf("."));
+        }
+
+        String encryptedFileName = UUID.randomUUID().toString() + extension;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(encryptedFileName)
+                .contentType(file.getContentType())
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        String link = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, "us-east-1", encryptedFileName);
+
+        existingProduct.setCodeProduct(dtoProductAdmin.getCodeProduct());
+        existingProduct.setProductName(dtoProductAdmin.getProductName());
+        existingProduct.setDescriptionProduct(dtoProductAdmin.getDescriptionProduct() != null ? dtoProductAdmin.getDescriptionProduct() : null);
         existingProduct.setStockProduct(dtoProductAdmin.getStockProduct());
         existingProduct.setCriticProduct(dtoProductAdmin.getCriticProduct());
         existingProduct.setPriceProduct(dtoProductAdmin.getPriceProduct());
         existingProduct.setCostPriceProduct(dtoProductAdmin.getCostPriceProduct());
         existingProduct.setDepartment(department);
-        existingProduct.setUrlProduct(dtoProductAdmin.getUrlProduct());
+        existingProduct.setActiveProduct(true);
+        existingProduct.setUrlProduct(link);
+        productRepository.save(existingProduct);
 
         return dtoProductAdmin.parseDTOProductAdmin(productRepository.save(existingProduct));
     }

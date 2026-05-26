@@ -66,9 +66,13 @@ public class ProductController {
 
 
     @PutMapping(path = "/editProduct/{productName}")
-    public ResponseEntity<DTOProductAdmin> editProduct(@PathVariable String productName, @RequestBody DTOProductAdmin dtoProductAdmin) throws InterruptedException{
+    public ResponseEntity<DTOProductAdmin> editProduct(
+            @PathVariable String productName,
+            @RequestPart("product") DTOProductAdmin dtoProductAdmin,
+            @RequestPart(value = "image", required = true) MultipartFile imageFile
+    ) throws InterruptedException, IOException{
         Thread.sleep(2000L);
-        return ResponseEntity.ok(productService.editProduct(productName, dtoProductAdmin));
+        return ResponseEntity.ok(productService.editProduct(productName, dtoProductAdmin, imageFile));
     }
 
     @DeleteMapping(path = "/deleteProduct/{productName}")
